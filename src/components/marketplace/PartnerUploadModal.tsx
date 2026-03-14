@@ -234,7 +234,7 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
                             </div>
                             <div>
                                 <h2 className="text-xl font-bold text-white uppercase tracking-wider">
-                                    {isEditMode ? "Editar en The Vault" : "Publicar en The Vault"}
+                                    {isEditMode ? "Editar en Portal de Socios" : "Publicar en Portal de Socios"}
                                 </h2>
                                 <p className="text-xs text-gray-500 font-medium">
                                     {isEditMode ? "Actualizar Proyecto" : "Nuevo Proyecto"} • Paso {step} de 4

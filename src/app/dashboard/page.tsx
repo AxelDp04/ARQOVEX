@@ -195,7 +195,7 @@ export default function DashboardPage() {
     ];
 
     if (perfil?.es_socio) {
-        tabs.push({ id: "vault", icon: ShieldCheck, label: "The Vault", count: misProyectos.length });
+        tabs.push({ id: "vault", icon: ShieldCheck, label: "Portal de Socios", count: misProyectos.length });
     }
 
     return (

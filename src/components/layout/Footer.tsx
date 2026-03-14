@@ -7,7 +7,7 @@ const footerLinks = {
         { label: "Proyectos Arquitectónicos", href: "/catalogo?seccion=planos" },
         { label: "Inmobiliaria Premium", href: "/catalogo?seccion=inmobiliaria" },
         { label: "Asóciate con Nosotros", href: "/vender-con-nosotros" },
-        { label: "Mi Portal (The Vault)", href: "/dashboard" },
+        { label: "Portal de Socios", href: "/dashboard" },
     ],
     empresa: [
         { label: "Sobre Nosotros", href: "/nosotros" },
