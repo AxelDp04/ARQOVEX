@@ -44,9 +44,9 @@ export default function FeaturedPlansSection() {
                 
                 {/* Content */}
                 <div className="space-y-4">
-                    <h3 className="text-2xl font-bold text-white">
+                    <h2 className="text-2xl font-bold text-white">
                         Próximamente: Catálogo de Gala en Preparación
-                    </h3>
+                    </h2>
                     <p className="text-gray-400 text-lg leading-relaxed">
                         Estamos curando nuestra primera colección de arquitectura disruptiva. 
                         Suscríbete para el lanzamiento.

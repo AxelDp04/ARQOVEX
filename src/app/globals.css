@@ -60,6 +60,10 @@
     width: 6px;
   }
 
+  a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+    @apply outline-none ring-2 ring-brand-blue-light ring-offset-2 ring-offset-[#0A0F1A];
+  }
+
   ::-webkit-scrollbar-track {
     background: #0A0F1A;
   }

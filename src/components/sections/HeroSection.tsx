@@ -35,10 +35,8 @@ export default function HeroSection() {
 
                         {/* Headline */}
                         <div className="space-y-2">
-                            <h1 className="font-display text-5xl md:text-6xl xl:text-7xl font-black text-white leading-none tracking-tight">
-                                Excelencia en Diseño
-                            </h1>
-                            <h1 className="font-display text-5xl md:text-6xl xl:text-7xl font-black leading-none tracking-tight">
+                            <h1 className="font-display text-5xl md:text-6xl xl:text-7xl font-black leading-none tracking-tight flex flex-col gap-2">
+                                <span className="text-white">Excelencia en Diseño</span>
                                 <span className="bg-gradient-to-r from-brand-blue via-brand-blue-light to-white bg-clip-text text-transparent">
                                     y Gestión Inmobiliaria
                                 </span>

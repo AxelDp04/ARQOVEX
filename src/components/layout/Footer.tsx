@@ -48,7 +48,7 @@ export default function Footer() {
                                 <span className="text-brand-blue">VEX</span>
                             </span>
                         </Link>
-                        <p className="text-sm text-gray-500 leading-relaxed italic">
+                        <p className="text-sm text-gray-400 leading-relaxed italic">
                             &quot;La arquitectura es la infraestructura de la civilización, diseñada para la eficiencia y la trascendencia.&quot;
                         </p>
                         <div className="flex items-center gap-3">
@@ -75,7 +75,7 @@ export default function Footer() {
                                 <li key={link.href}>
                                     <Link
                                         href={link.href}
-                                        className="flex items-center gap-1 text-sm text-gray-500 hover:text-brand-blue-light transition-colors duration-200 group"
+                                        className="flex items-center gap-1 text-sm text-gray-400 hover:text-brand-blue-light transition-colors duration-200 group"
                                     >
                                         <ArrowRight className="w-3 h-3 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
                                         {link.label}
@@ -95,7 +95,7 @@ export default function Footer() {
                                 <li key={link.href}>
                                     <Link
                                         href={link.href}
-                                        className="flex items-center gap-1 text-sm text-gray-500 hover:text-brand-blue-light transition-colors duration-200 group"
+                                        className="flex items-center gap-1 text-sm text-gray-400 hover:text-brand-blue-light transition-colors duration-200 group"
                                     >
                                         <ArrowRight className="w-3 h-3 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-200" />
                                         {link.label}
@@ -112,7 +112,7 @@ export default function Footer() {
                         </h4>
                         <ul className="space-y-3">
                             {contactInfo.map(({ icon: Icon, text, href }) => (
-                                <li key={text} className="flex items-start gap-3 text-sm text-gray-500">
+                                <li key={text} className="flex items-start gap-3 text-sm text-gray-400">
                                     <Icon className="w-4 h-4 text-brand-blue mt-0.5 flex-shrink-0" />
                                     {href ? (
                                         <a href={href} target="_blank" rel="noopener noreferrer" className="hover:text-brand-blue transition-colors">
@@ -139,10 +139,10 @@ export default function Footer() {
                 {/* Bottom Bar */}
                 <div className="mt-12 pt-8 border-t border-white/[0.05] flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div className="flex flex-col gap-2">
-                        <p className="text-xs text-gray-600">
+                        <p className="text-xs text-gray-500">
                             © {new Date().getFullYear()} ARQOVEX. Todos los derechos reservados.
                         </p>
-                        <p className="text-xs text-gray-500/60 font-light">
+                        <p className="text-xs text-gray-400/60 font-light">
                             Dirección: Robert Carrasco | Desarrollo: Ing. Axel Perez | <a href="https://wa.me/18098285104" target="_blank" rel="noopener noreferrer" className="hover:text-brand-blue-light transition-colors">+1 809-828-5104</a>
                         </p>
                     </div>

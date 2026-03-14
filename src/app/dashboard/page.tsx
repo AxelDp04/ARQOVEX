@@ -7,7 +7,9 @@ import { Heart, ShoppingBag, User, LogOut, Download, Loader2, ShieldCheck, Plus,
 import MainLayout from "@/components/layout/MainLayout";
 import PlanoCard from "@/components/ui/PlanoCard";
 import ProjectStatusCard from "@/components/marketplace/ProjectStatusCard";
-import PartnerUploadModal from "@/components/marketplace/PartnerUploadModal";
+import dynamic from "next/dynamic";
+
+const PartnerUploadModal = dynamic(() => import("@/components/marketplace/PartnerUploadModal"), { ssr: false });
 import { createClient } from "@/lib/supabase/client";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import type { Plano, Perfil } from "@/types";
