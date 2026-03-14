@@ -1,15 +1,16 @@
 /** @type {import('next').NextConfig} */
 const cspHeader = `
     default-src 'self';
-    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live;
-    style-src 'self' 'unsafe-inline';
-    img-src 'self' blob: data: https://rdbdwvwmnozumwtxdmra.supabase.co https://*.supabase.co https://images.unsplash.com;
-    font-src 'self';
+    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live https://www.paypal.com https://*.paypal.com https://www.paypalobjects.com;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    img-src 'self' blob: data: https://rdbdwvwmnozumwtxdmra.supabase.co https://*.supabase.co https://images.unsplash.com https://*.paypal.com https://*.paypalobjects.com;
+    font-src 'self' data: https://fonts.gstatic.com;
     object-src 'none';
     base-uri 'self';
     form-action 'self';
     frame-ancestors 'none';
-    connect-src 'self' https://rdbdwvwmnozumwtxdmra.supabase.co https://*.supabase.co;
+    frame-src 'self' https://www.paypal.com https://*.paypal.com https://www.sandbox.paypal.com;
+    connect-src 'self' https://rdbdwvwmnozumwtxdmra.supabase.co https://*.supabase.co https://www.paypal.com https://*.paypal.com https://www.sandbox.paypal.com;
 `;
 
 const nextConfig = {
