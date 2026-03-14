@@ -14,11 +14,6 @@ import type { Plano, Perfil } from "@/types";
 
 type Tab = "adquisiciones" | "favoritos" | "perfil" | "vault";
 
-// Sample fallback data
-const sampleFavoritos: Plano[] = [
-    { id: "f1", titulo: "Residencia Contemporánea 180m²", descripcion: "Diseño moderno con amplios espacios.", precio: 299, metros_cuadrados: 180, habitaciones: 3, banos: 2, pisos: 1, categoria_id: "m", imagen_url: "", estilo: "Contemporáneo", destacado: true, disponible: true, created_at: new Date().toISOString(), categoria: { id: "m", nombre: "Moderno", slug: "moderno" } },
-];
-
 export default function DashboardPage() {
     const router = useRouter();
     const supabase = createClient();
@@ -88,14 +83,14 @@ export default function DashboardPage() {
 
                 if (favError) {
                     console.error("Supabase Error [Favoritos]:", favError.message, favError.details);
-                    setFavoritos(sampleFavoritos);
+                    setFavoritos([]); // No fallback data, just empty array
                 } else {
                     const favPlanos = (favData?.map((f: { plano: Plano | null }) => f.plano).filter(Boolean) as Plano[]) || [];
-                    setFavoritos(favPlanos.length ? favPlanos : sampleFavoritos);
+                    setFavoritos(favPlanos); // Only use real data
                 }
             } catch (err) {
                 console.error("Fetch Exception [Favoritos]:", err);
-                setFavoritos(sampleFavoritos);
+                setFavoritos([]); // No fallback data, just empty array
             }
 
             // Fetch adquisiciones from both tables

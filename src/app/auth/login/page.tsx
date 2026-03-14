@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -33,6 +33,37 @@ function LoginForm() {
         }
     };
 
+    useEffect(() => {
+        const checkRedirect = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            
+            if (user) {
+                const { data: profile } = await supabase
+                    .from('perfiles')
+                    .select('es_admin, role')
+                    .eq('id', user.id)
+                    .single();
+
+                const isAdminFromProfile = profile?.es_admin === true || profile?.role === 'admin';
+                
+                const hardcodedAdminEmails = ['axelp7223@gmail.com', 'arqovex@gmail.com', 'robertoficial69@hotmail.com'];
+                const isHardcodedAdmin = hardcodedAdminEmails.includes(user.email?.toLowerCase() || '');
+                
+                const isAdmin = isAdminFromProfile || isHardcodedAdmin;
+                
+                if (isAdmin) {
+                    router.push("/admin");
+                } else {
+                    router.push("/arquitectura");
+                }
+            }
+        };
+
+        if (typeof window !== 'undefined' && window.location.pathname === '/auth/login') {
+            checkRedirect();
+        }
+    }, [router, supabase]);
+
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
@@ -44,7 +75,34 @@ function LoginForm() {
             setError("Credenciales incorrectas. Verifica tu email y contraseña.");
             setLoading(false);
         } else {
-            router.push("/catalogo");
+            // Check if user is admin
+            const { data: { user } } = await supabase.auth.getUser();
+            
+            if (user) {
+                // Check profile for admin status
+                const { data: profile } = await supabase
+                    .from('perfiles')
+                    .select('es_admin, role')
+                    .eq('id', user.id)
+                    .single();
+
+                // Check multiple admin indicators
+                const isAdminFromProfile = profile?.es_admin === true || profile?.role === 'admin';
+                
+                // Hardcoded admin override (CRITICAL)
+                const hardcodedAdminEmails = ['axelp7223@gmail.com', 'arqovex@gmail.com', 'robertoficial69@hotmail.com'];
+                const isHardcodedAdmin = hardcodedAdminEmails.includes(user.email?.toLowerCase() || '');
+                
+                const isAdmin = isAdminFromProfile || isHardcodedAdmin;
+                
+                if (isAdmin) {
+                    router.push("/admin");
+                } else {
+                    router.push("/arquitectura");
+                }
+            } else {
+                router.push("/arquitectura");
+            }
             router.refresh();
         }
     };
@@ -59,7 +117,7 @@ function LoginForm() {
                 <div className="absolute top-6 left-6">
                     <Link href="/" className="flex items-center gap-2.5 group">
                         <div className="relative w-8 h-8">
-                            <Image src="/Logo.png" alt="ARQOVEX" fill className="object-contain" />
+                            <Image src="/Logo.png" alt="ARQOVEX" fill sizes="100vw" className="object-contain" />
                         </div>
                         <span className="font-display text-lg font-bold">
                             <span className="text-white">ARQO</span><span className="text-brand-blue">VEX</span>
@@ -214,7 +272,7 @@ function LoginForm() {
 
                 <div className="relative z-10 p-12 text-center space-y-6">
                     <div className="relative w-32 h-32 mx-auto animate-float">
-                        <Image src="/Logo.png" alt="ARQOVEX" fill className="object-contain drop-shadow-[0_0_40px_rgba(0,102,255,0.5)]" />
+                        <Image src="/Logo.png" alt="ARQOVEX" fill sizes="100vw" className="object-contain drop-shadow-[0_0_40px_rgba(0,102,255,0.5)]" />
                     </div>
                     <div className="space-y-2">
                         <h2 className="font-display text-2xl font-bold text-white">ARQOVEX</h2>

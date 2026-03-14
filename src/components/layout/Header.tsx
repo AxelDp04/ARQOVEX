@@ -14,6 +14,8 @@ const navLinks = [
     { href: "/contacto", label: "Contacto" },
 ];
 
+const ADMIN_EMAILS = ['axelp7223@gmail.com', 'arqovex@gmail.com', 'robertoficial69@hotmail.com'];
+
 export default function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
@@ -45,7 +47,8 @@ export default function Header() {
         supabase.auth.getUser().then(({ data }) => {
             setUser(data.user);
             if (data.user) {
-                if (data.user.email?.toLowerCase() === 'robertoficial69@hotmail.com') {
+                const userEmail = data.user.email?.toLowerCase();
+                if (userEmail && ADMIN_EMAILS.includes(userEmail)) {
                     setIsAdmin(true);
                 } else {
                     checkAdmin(data.user.id);
@@ -56,7 +59,8 @@ export default function Header() {
         const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
             setUser(session?.user ?? null);
             if (session?.user) {
-                if (session.user.email?.toLowerCase() === 'robertoficial69@hotmail.com') {
+                const userEmail = session.user.email?.toLowerCase();
+                if (userEmail && ADMIN_EMAILS.includes(userEmail)) {
                     setIsAdmin(true);
                 } else {
                     checkAdmin(session.user.id);
@@ -90,6 +94,7 @@ export default function Header() {
                                 src="/Logo.png"
                                 alt="ARQOVEX Logo"
                                 fill
+                                sizes="100vw"
                                 className="object-contain"
                                 priority
                             />
@@ -114,10 +119,10 @@ export default function Header() {
                         {isAdmin && (
                             <Link
                                 href="/admin"
-                                className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-purple-400 bg-purple-500/10 border border-purple-500/20 hover:bg-purple-500/20 rounded-lg transition-all duration-200 ml-2"
+                                className="flex items-center gap-2 px-5 py-2 text-xs font-black text-slate-950 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-600 hover:from-amber-500 hover:to-amber-700 rounded-xl transition-all duration-300 ml-2 shadow-[0_0_15px_rgba(251,191,36,0.3)] hover:shadow-[0_0_20px_rgba(251,191,36,0.5)] scale-105"
                             >
-                                <Shield className="w-4 h-4" />
-                                Panel Admin
+                                <Shield className="w-3.5 h-3.5 fill-slate-950" />
+                                PANEL ADMIN
                             </Link>
                         )}
                     </nav>
@@ -151,10 +156,10 @@ export default function Header() {
                                             <Link
                                                 href="/admin"
                                                 onClick={() => setIsUserMenuOpen(false)}
-                                                className="flex items-center gap-3 px-4 py-3 text-sm text-purple-400 hover:text-purple-300 hover:bg-purple-500/5 transition-colors"
+                                                className="flex items-center gap-3 px-4 py-3 text-sm font-bold text-amber-400 hover:bg-amber-400/10 transition-colors"
                                             >
-                                                <Shield className="w-4 h-4" />
-                                                Panel Admin
+                                                <Shield className="w-4 h-4 fill-amber-400/20" />
+                                                PANEL CONTROL
                                             </Link>
                                         )}
                                         <Link
@@ -228,10 +233,10 @@ export default function Header() {
                                     <Link
                                         href="/admin"
                                         onClick={() => setIsMenuOpen(false)}
-                                        className="flex items-center gap-3 px-4 py-3 text-purple-400 hover:text-purple-300 hover:bg-purple-500/5 rounded-xl transition-colors"
+                                        className="flex items-center gap-3 px-4 py-3 text-amber-400 bg-amber-400/5 font-bold rounded-xl transition-colors border border-amber-400/20"
                                     >
-                                        <Shield className="w-4 h-4" />
-                                        Panel Admin
+                                        <Shield className="w-4 h-4 fill-amber-400/20" />
+                                        PANEL ADMINISTRACIÓN
                                     </Link>
                                 )}
                                 <button

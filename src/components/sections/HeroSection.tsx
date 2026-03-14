@@ -30,17 +30,17 @@ export default function HeroSection() {
                         {/* Badge */}
                         <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-brand-blue/10 border border-brand-blue/25 text-brand-blue-light text-sm font-medium uppercase tracking-[0.1em]">
                             <span className="w-2 h-2 rounded-full bg-brand-blue animate-pulse" />
-                            Ecosistema de Innovación Arquitectónica
+                            Innovación Arquitectónica y Gestión Inmobiliaria
                         </div>
 
                         {/* Headline */}
                         <div className="space-y-2">
                             <h1 className="font-display text-5xl md:text-6xl xl:text-7xl font-black text-white leading-none tracking-tight">
-                                Planos para el
+                                Excelencia en Diseño
                             </h1>
                             <h1 className="font-display text-5xl md:text-6xl xl:text-7xl font-black leading-none tracking-tight">
                                 <span className="bg-gradient-to-r from-brand-blue via-brand-blue-light to-white bg-clip-text text-transparent">
-                                    Futuro
+                                    y Gestión Inmobiliaria
                                 </span>
                             </h1>
                         </div>
@@ -100,6 +100,7 @@ export default function HeroSection() {
                                         src="/Logo.png"
                                         alt="ARQOVEX"
                                         fill
+                                        sizes="100vw"
                                         className="object-contain drop-shadow-[0_0_40px_rgba(0,102,255,0.4)]"
                                         priority
                                     />

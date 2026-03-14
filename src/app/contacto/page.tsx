@@ -31,21 +31,43 @@ export default function ContactoPage() {
         setLoading(true);
         setError(null);
 
-        const phone = "18296503337";
-        const message = `Hola ARQOVEX, mi nombre es ${form.nombre}.
-Correo: ${form.email}
-Asunto: ${form.tipo}
-Mensaje: ${form.mensaje}
+        try {
+            // 1. Enviar a API de proyectos (correo + base de datos)
+            const response = await fetch('/api/proyectos', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    nombre: form.nombre,
+                    email: form.email,
+                    telefono: form.telefono,
+                    tipo_servicio: form.tipo,
+                    mensaje: form.mensaje,
+                }),
+            });
 
-Deseo información personalizada.`;
+            const data = await response.json();
 
-        const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-
-        // Open WhatsApp in a new tab
-        window.open(whatsappUrl, "_blank");
-
-        setLoading(false);
-        setSuccess(true);
+            if (response.ok) {
+                // 2. Abrir WhatsApp automáticamente (persistente independiente del correo)
+                const phone = "18296503337"; // Central ARQOVEX Oficial
+                const whatsappMessage = `Hola equipo de ARQOVEX, acabo de enviar una solicitud para un ${form.tipo} desde la web oficial. Mi nombre es ${form.nombre} y espero su contacto para iniciar la consultoría de gala.`;
+                const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(whatsappMessage)}`;
+                
+                // Abrir WhatsApp en nueva pestaña
+                window.open(whatsappUrl, "_blank");
+                
+                // 3. Mostrar mensaje de éxito
+                setSuccess(true);
+            } else {
+                setError(data.error || 'Error al enviar la solicitud');
+            }
+        } catch {
+            setError('Error de conexión. Por favor, intenta nuevamente.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -112,9 +134,9 @@ Deseo información personalizada.`;
                                     <div className="w-16 h-16 rounded-full bg-green-500/15 border border-green-500/25 flex items-center justify-center mx-auto">
                                         <CheckCircle className="w-8 h-8 text-green-400" />
                                     </div>
-                                    <h3 className="font-display text-2xl font-bold text-white">¡Mensaje Enviado!</h3>
+                                    <h3 className="font-display text-2xl font-bold text-white">¡Solicitud de Gala Recibida! 🏛️</h3>
                                     <p className="text-gray-400 leading-relaxed">
-                                        Gracias por contactarnos. Un arquitecto te responderá en menos de 24 horas hábiles.
+                                        El equipo técnico de ARQOVEX está revisando tus detalles. Te contactarán en menos de 24h para tu consultoría de ingeniería.
                                     </p>
                                     <button
                                         onClick={() => { setSuccess(false); setForm({ nombre: "", email: "", telefono: "", tipo: servicios[0], mensaje: "" }); }}
@@ -169,7 +191,7 @@ Deseo información personalizada.`;
                                             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                                                 <>
                                                     <MessageCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                                                    <span>Enviar Mensaje por WhatsApp</span>
+                                                    <span>Enviar Solicitud de Proyecto</span>
                                                 </>
                                             )}
                                         </button>

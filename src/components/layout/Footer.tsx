@@ -41,7 +41,7 @@ export default function Footer() {
                     <div className="lg:col-span-1 space-y-5">
                         <Link href="/" className="flex items-center gap-3 w-fit">
                             <div className="relative w-10 h-10">
-                                <Image src="/Logo.png" alt="ARQOVEX" fill className="object-contain" />
+                                <Image src="/Logo.png" alt="ARQOVEX" fill sizes="100vw" className="object-contain" />
                             </div>
                             <span className="font-display text-2xl font-bold">
                                 <span className="text-white">ARQO</span>

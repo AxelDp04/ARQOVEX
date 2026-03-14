@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 
 export default function WhatsAppFloating() {
     const [isVisible, setIsVisible] = useState(false);
-    const robertNumber = "18299898038"; // Using the standard format for WhatsApp API
+    const arqovexNumber = "18296503337"; // Central ARQOVEX Oficial
 
     useEffect(() => {
         const timer = setTimeout(() => setIsVisible(true), 2000);
@@ -14,8 +14,8 @@ export default function WhatsAppFloating() {
     }, []);
 
     const handleClick = () => {
-        const message = encodeURIComponent("¡Hola Robert! Vengo desde la web de ARQOVEX. Me gustaría recibir asesoría.");
-        window.open(`https://wa.me/${robertNumber}?text=${message}`, "_blank");
+        const message = encodeURIComponent("Hola ARQOVEX, estoy navegando en su plataforma de gala y me gustaría solicitar información profesional.");
+        window.open(`https://wa.me/${arqovexNumber}?text=${message}`, "_blank");
     };
 
     return (
@@ -36,7 +36,7 @@ export default function WhatsAppFloating() {
                     <div className="relative z-10 flex items-center gap-2">
                         <MessageCircle className="w-6 h-6 fill-white/20" />
                         <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-500 ease-in-out whitespace-nowrap text-sm font-bold">
-                            Soporte ARQOVEX
+                            Central ARQOVEX
                         </span>
                     </div>
 

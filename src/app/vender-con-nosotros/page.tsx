@@ -189,10 +189,10 @@ export default function VenderConNosotrosPage() {
                 <section className="py-32 relative border-y border-white/5">
                     <div className="container-section grid grid-cols-1 md:grid-cols-4 gap-12">
                         {[
-                            { label: "Pipeline Innovación", value: "2026", sub: "Visionary Horizon" },
-                            { label: "Nodos de Red", value: "100%", sub: "Disponibilidad Cloud" },
-                            { label: "Visibilidad Directa", value: "+10k", sub: "Inversionistas mes" },
-                            { label: "Estándar Técnico", value: "ELITE", sub: "Curaduría Profesional" }
+                            { label: "Próximo Horizonte", value: "V.2026", sub: "Innovación" },
+                            { label: "Infraestructura Directa", value: "100% Digital", sub: "Tecnología" },
+                            { label: "Curaduría de Ingeniería", value: "TECH", sub: "Estándar" },
+                            { label: "Estándar Arquitectónico", value: "ELITE", sub: "Excelencia" }
                         ].map((stat, i) => (
                             <motion.div 
                                 key={i}

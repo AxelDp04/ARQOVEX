@@ -2,67 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, Loader2, Calendar, Mail } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import PlanoCard from "@/components/ui/PlanoCard";
 import type { Plano } from "@/types";
-
-// Sample fallback data if DB is empty
-const samplePlanos: Plano[] = [
-    {
-        id: "sample-1",
-        titulo: "Residencia Contemporánea 180m²",
-        descripcion: "Diseño moderno con amplios espacios abiertos, sala integrada y terraza.",
-        precio: 299,
-        precio_original: 399,
-        metros_cuadrados: 180,
-        habitaciones: 3,
-        banos: 2,
-        pisos: 1,
-        categoria_id: "moderna",
-        imagen_url: "",
-        estilo: "Contemporáneo",
-        destacado: true,
-        disponible: true,
-        created_at: new Date().toISOString(),
-        categoria: { id: "moderna", nombre: "Moderna", slug: "moderna" },
-    },
-    {
-        id: "sample-2",
-        titulo: "Villa Minimalista 250m²",
-        descripcion: "Arquitectura minimalista de dos plantas con piscina y jardín.",
-        precio: 499,
-        metros_cuadrados: 250,
-        habitaciones: 4,
-        banos: 3,
-        pisos: 2,
-        categoria_id: "minimalista",
-        imagen_url: "",
-        estilo: "Minimalista",
-        destacado: true,
-        disponible: true,
-        created_at: new Date().toISOString(),
-        categoria: { id: "min", nombre: "Minimalista", slug: "minimalista" },
-    },
-    {
-        id: "sample-3",
-        titulo: "Casa Colonial 320m²",
-        descripcion: "Estilo colonial venezolano con patio central y techos altos.",
-        precio: 649,
-        precio_original: 799,
-        metros_cuadrados: 320,
-        habitaciones: 5,
-        banos: 4,
-        pisos: 2,
-        categoria_id: "colonial",
-        imagen_url: "",
-        estilo: "Colonial",
-        destacado: true,
-        disponible: true,
-        created_at: new Date().toISOString(),
-        categoria: { id: "col", nombre: "Colonial", slug: "colonial" },
-    },
-];
 
 export default function FeaturedPlansSection() {
     const [planos, setPlanos] = useState<Plano[]>([]);
@@ -76,19 +19,60 @@ export default function FeaturedPlansSection() {
                 .select("*, categoria:categorias(*), galeria:galeria_propiedades(imagen_url)")
                 .eq("destacado", true)
                 .eq("disponible", true)
-                .limit(6)
+                .limit(3)
                 .order("created_at", { ascending: false });
 
-            if (error || !data || data.length === 0) {
-                setPlanos(samplePlanos);
+            if (error) {
+                console.error("Error fetching planos:", error);
             } else {
-                setPlanos(data as Plano[]);
+                setPlanos(data as Plano[] || []);
             }
             setLoading(false);
         };
 
         fetchPlanos();
     }, [supabase]);
+
+    // Empty State Component
+    const EmptyState = () => (
+        <div className="text-center py-20">
+            <div className="max-w-2xl mx-auto space-y-6">
+                {/* Icon */}
+                <div className="w-16 h-16 rounded-full bg-brand-blue/10 flex items-center justify-center mx-auto">
+                    <Calendar className="w-8 h-8 text-brand-blue" />
+                </div>
+                
+                {/* Content */}
+                <div className="space-y-4">
+                    <h3 className="text-2xl font-bold text-white">
+                        Próximamente: Catálogo de Gala en Preparación
+                    </h3>
+                    <p className="text-gray-400 text-lg leading-relaxed">
+                        Estamos curando nuestra primera colección de arquitectura disruptiva. 
+                        Suscríbete para el lanzamiento.
+                    </p>
+                </div>
+
+                {/* CTA */}
+                <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+                    <Link
+                        href="/contacto"
+                        className="btn-primary px-6 py-3"
+                    >
+                        <Mail className="w-4 h-4" />
+                        Suscribirse al lanzamiento
+                    </Link>
+                    <Link
+                        href="/catalogo"
+                        className="btn-secondary px-6 py-3"
+                    >
+                        Explorar plataforma
+                        <ArrowRight className="w-4 h-4" />
+                    </Link>
+                </div>
+            </div>
+        </div>
+    );
 
     return (
         <section className="relative py-24 overflow-hidden">
@@ -106,20 +90,24 @@ export default function FeaturedPlansSection() {
                             </span>
                         </h2>
                     </div>
-                    <Link
-                        href="/catalogo"
-                        className="btn-secondary text-sm px-5 py-2.5 whitespace-nowrap"
-                    >
-                        Ver todo el catálogo
-                        <ArrowRight className="w-4 h-4" />
-                    </Link>
+                    {planos.length > 0 && (
+                        <Link
+                            href="/catalogo"
+                            className="btn-secondary text-sm px-5 py-2.5 whitespace-nowrap"
+                        >
+                            Ver todo el catálogo
+                            <ArrowRight className="w-4 h-4" />
+                        </Link>
+                    )}
                 </div>
 
-                {/* Grid */}
+                {/* Content */}
                 {loading ? (
                     <div className="flex items-center justify-center py-20">
                         <Loader2 className="w-8 h-8 text-brand-blue animate-spin" />
                     </div>
+                ) : planos.length === 0 ? (
+                    <EmptyState />
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                         {planos.map((plano) => (

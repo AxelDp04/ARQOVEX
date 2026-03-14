@@ -106,7 +106,7 @@ export default function RegistroPage() {
                 <div className="absolute bottom-0 right-0 w-[300px] h-[300px] bg-brand-blue-dark/15 rounded-full blur-[60px]" />
                 <div className="relative z-10 p-12 text-center space-y-6">
                     <div className="relative w-32 h-32 mx-auto animate-float">
-                        <Image src="/Logo.png" alt="ARQOVEX" fill className="object-contain drop-shadow-[0_0_40px_rgba(0,102,255,0.5)]" />
+                        <Image src="/Logo.png" alt="ARQOVEX" fill sizes="100vw" className="object-contain drop-shadow-[0_0_40px_rgba(0,102,255,0.5)]" />
                     </div>
                     <div className="space-y-2">
                         <h2 className="font-display text-2xl font-bold text-white">Únete a ARQOVEX</h2>
@@ -129,7 +129,7 @@ export default function RegistroPage() {
                 <div className="absolute top-6 right-6">
                     <Link href="/" className="flex items-center gap-2.5">
                         <div className="relative w-8 h-8">
-                            <Image src="/Logo.png" alt="ARQOVEX" fill className="object-contain" />
+                            <Image src="/Logo.png" alt="ARQOVEX" fill sizes="100vw" className="object-contain" />
                         </div>
                         <span className="font-display text-lg font-bold">
                             <span className="text-white">ARQO</span><span className="text-brand-blue">VEX</span>

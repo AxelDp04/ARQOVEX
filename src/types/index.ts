@@ -37,6 +37,7 @@ export interface Plano {
     // Marketplace
     vendedor_id?: string
     estado_revision?: 'en_revision' | 'publicado' | 'rechazado'
+    seccion?: 'planos' | 'inmobiliaria'
 }
 
 export interface Categoria {

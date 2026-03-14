@@ -212,6 +212,67 @@ export const PropertyNotificationEmailTemplate = ({
         </Body>
     </Html>
 );
+export const ProyectoNotificationEmailTemplate = ({
+    nombre,
+    email,
+    telefono,
+    tipo_servicio,
+    mensaje
+}: {
+    nombre: string;
+    email: string;
+    telefono: string;
+    tipo_servicio: string;
+    mensaje: string;
+}) => (
+    <Html>
+        <Head />
+        <Preview>Nueva Solicitud de Proyecto: {nombre}</Preview>
+        <Body style={main}>
+            <Container style={container}>
+                <Section style={{ textAlign: 'center' }}>
+                    <Img
+                        src="https://arqovex.vercel.app/Logo.png"
+                        width="60"
+                        height="60"
+                        alt="ARQOVEX"
+                        style={logo}
+                    />
+                    <Text style={badge}>Nueva Solicitud de Proyecto</Text>
+                    <Heading style={h1}>🏠 Consulta Arquitectónica</Heading>
+                </Section>
+
+                <Section style={{ backgroundColor: 'rgba(255, 255, 255, 0.03)', padding: '20px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                    <Text style={{ ...text, marginBottom: '10px', color: '#FFFFFF' }}><strong>Detalles del Cliente:</strong></Text>
+                    <Text style={{ ...text, marginBottom: '5px' }}>• Nombre: {nombre}</Text>
+                    <Text style={{ ...text, marginBottom: '5px' }}>• Email: {email}</Text>
+                    <Text style={{ ...text, marginBottom: '5px' }}>• Teléfono: {telefono}</Text>
+                    <Text style={{ ...text, marginBottom: '5px' }}>• Tipo de Servicio: {tipo_servicio}</Text>
+                    
+                    <Hr style={{ ...hr, margin: '20px 0' }} />
+                    
+                    <Text style={{ ...text, marginBottom: '10px', color: '#FFFFFF' }}><strong>Mensaje del Proyecto:</strong></Text>
+                    <Text style={text}>{mensaje}</Text>
+                </Section>
+
+                <Section style={{ textAlign: 'center', marginTop: '30px' }}>
+                    <Text style={{ ...text, fontSize: '14px', textAlign: 'center' }}>
+                        <strong>Acción Inmediata Requerida:</strong><br />
+                        Contactar al cliente en menos de 24 horas para convertir esta consulta en un proyecto.
+                    </Text>
+                </Section>
+
+                <Hr style={hr} />
+                <Text style={footer}>
+                    ARQOVEX Proyectos System<br />
+                    © 2026 ARQOVEX RD. Todos los derechos reservados.<br />
+                    Santo Domingo, República Dominicana.
+                </Text>
+            </Container>
+        </Body>
+    </Html>
+);
+
 export const CitaNotificationEmailTemplate = ({
     nombre,
     email,

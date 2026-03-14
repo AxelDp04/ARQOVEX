@@ -15,7 +15,8 @@ import {
     Ruler,
     ChevronLeft,
     ChevronRight,
-    User
+    User,
+    CreditCard
 } from "lucide-react";
 import type { Plano } from "@/types";
 
@@ -284,13 +285,35 @@ export default function PlanoCard({ plano, onToggleFavorito, isFavorito = false 
                             </div>
                         </div>
                     </div>
-                    <Link
-                        href={`/plano/${plano.id}`}
-                        className="flex items-center gap-1.5 text-sm font-semibold text-brand-blue hover:text-brand-blue-light transition-colors group/cta bg-brand-blue/10 px-4 py-2 rounded-lg"
-                    >
-                        Detalles
-                        <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover/cta:translate-x-1" />
-                    </Link>
+                    <div className="flex items-center gap-2">
+                        <Link
+                            href={`/plano/${plano.id}`}
+                            className="flex items-center gap-1.5 text-xs font-bold text-gray-400 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-white/5"
+                        >
+                            Detalles
+                        </Link>
+                        {plano.seccion === 'planos' ? (
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    // Placeholder for payment flow
+                                    window.location.href = `/plano/${plano.id}?buy=true`;
+                                }}
+                                className="flex items-center gap-2 text-xs font-black uppercase tracking-tighter bg-brand-gradient text-white px-4 py-2 rounded-lg shadow-blue-glow hover:scale-105 transition-all"
+                            >
+                                <CreditCard className="w-3 h-3" />
+                                Comprar
+                            </button>
+                        ) : (
+                            <Link
+                                href={`/plano/${plano.id}`}
+                                className="flex items-center gap-1.5 text-xs font-bold text-brand-blue hover:text-brand-blue-light transition-colors group/cta bg-brand-blue/10 px-4 py-2 rounded-lg"
+                            >
+                                Ver Más
+                                <ArrowRight className="w-3.5 h-3.5 transition-transform duration-200 group-hover/cta:translate-x-1" />
+                            </Link>
+                        )}
+                    </div>
                 </div>
             </div>
         </article>
