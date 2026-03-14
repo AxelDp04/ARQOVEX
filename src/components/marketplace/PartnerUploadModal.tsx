@@ -133,6 +133,9 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
         try {
             if (!isEditMode && !imgPrincipal) throw new Error("La imagen principal es obligatoria.");
             if (!formData.categoria_id) throw new Error("Debes seleccionar una categoría.");
+            if (!isEditMode && (galeria.length < 3 || galeria.length > 10)) {
+                throw new Error("Debes subir entre 3 y 10 fotos para la galería del proyecto.");
+            }
 
             let imgUrl = plano?.imagen_url || "";
             let archivoPath = plano?.url_archivo || "";
@@ -141,11 +144,11 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
             if (imgPrincipal) {
                 const imgPath = `proyectos/${userId}/${Date.now()}-${imgPrincipal.name}`;
                 const { error: uploadImgError } = await supabase.storage
-                    .from("planos")
+                    .from("planos-files")
                     .upload(imgPath, imgPrincipal);
                 
                 if (uploadImgError) throw uploadImgError;
-                const { data: { publicUrl } } = supabase.storage.from("planos").getPublicUrl(imgPath);
+                const { data: { publicUrl } } = supabase.storage.from("planos-files").getPublicUrl(imgPath);
                 imgUrl = publicUrl;
             }
 
@@ -162,7 +165,7 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
                 imagen_url: imgUrl,
                 url_archivo: archivoPath,
                 vendedor_id: userId,
-                estado_revision: isEditMode ? (plano.estado_revision === 'rechazado' ? 'en_revision' : plano.estado_revision) : "en_revision",
+                estado_revision: isEditMode ? (plano.estado_revision === 'rechazado' ? 'publicado' : plano.estado_revision) : "publicado",
                 destacado: plano?.destacado ?? false,
                 disponible: plano?.disponible ?? true
             };
@@ -185,8 +188,8 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
                 if (galeria.length > 0 && newPlano) {
                     const galleryPromises = galeria.map(async (file, idx) => {
                         const path = `galeria/${newPlano.id}/${idx}-${file.name}`;
-                        await supabase.storage.from("planos").upload(path, file);
-                        const { data: { publicUrl } } = supabase.storage.from("planos").getPublicUrl(path);
+                        await supabase.storage.from("planos-files").upload(path, file);
+                        const { data: { publicUrl } } = supabase.storage.from("planos-files").getPublicUrl(path);
                         return { plano_id: newPlano.id, imagen_url: publicUrl };
                     });
                     const galleryResults = await Promise.all(galleryPromises);
@@ -438,9 +441,9 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
                                         <CheckCircle className="w-8 h-8 text-white" />
                                     </div>
                                     <div>
-                                        <h3 className="text-2xl font-bold text-white">Todo listo para la revisión</h3>
+                                        <h3 className="text-2xl font-bold text-white">Todo listo para publicar</h3>
                                         <p className="text-white/70 text-sm max-w-sm mx-auto">
-                                            Tu proyecto será revisado por nuestro equipo de arquitectura antes de ser publicado oficialmente.
+                                            Al ser Socio Certificado, tu proyecto se publicará automáticamente e instantáneamente en el catálogo oficial de ARQOVEX.
                                         </p>
                                     </div>
                                 </div>
@@ -503,7 +506,7 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
                                 {loading ? (
                                     <><Loader2 className="w-5 h-5 animate-spin" /> Procesando...</>
                                 ) : (
-                                    <><Save className="w-5 h-5" /> {isEditMode ? "Guardar Cambios" : "Enviar a Revisión"}</>
+                                    <><Save className="w-5 h-5" /> {isEditMode ? "Guardar Cambios" : "Subir Proyecto"}</>
                                 )}
                             </button>
                         )}
