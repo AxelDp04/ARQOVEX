@@ -1,0 +1,208 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── CSS Custom Properties ── */
+:root {
+  --brand-blue: #0066FF;
+  --brand-blue-dark: #0044CC;
+  --brand-blue-light: #4D94FF;
+  --brand-metal: #6B7280;
+  --brand-slate: #1E2638;
+  --brand-slate-dark: #111827;
+  --brand-slate-deeper: #0A0F1A;
+  --font-inter: 'Inter', system-ui, sans-serif;
+  --font-outfit: 'Outfit', system-ui, sans-serif;
+}
+
+/* ── Base Reset & Typography ── */
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: var(--font-inter);
+    background-color: #0A0F1A;
+    color: #F9FAFB;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-outfit);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+
+  ::selection {
+    background-color: rgba(0, 102, 255, 0.3);
+    color: #FFFFFF;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #0A0F1A;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #374151;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #0066FF;
+  }
+}
+
+/* ── Component Utilities ── */
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 bg-brand-gradient text-white font-semibold rounded-xl transition-all duration-300 hover:shadow-blue-glow hover:scale-105 active:scale-100 cursor-pointer;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 border border-brand-blue/40 text-brand-blue-light font-semibold rounded-xl transition-all duration-300 hover:bg-brand-blue/10 hover:border-brand-blue hover:shadow-blue-glow cursor-pointer;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 text-gray-300 font-semibold rounded-xl transition-all duration-300 hover:text-white hover:bg-white/5 cursor-pointer;
+  }
+
+  .glass-card {
+    @apply bg-white/[0.04] backdrop-blur-md border border-white/[0.08] rounded-2xl transition-all duration-300;
+  }
+
+  .glass-card-hover {
+    @apply glass-card hover:bg-white/[0.07] hover:border-brand-blue/30 hover:shadow-card-hover;
+  }
+
+  .section-title {
+    @apply font-display text-3xl md:text-4xl lg:text-5xl font-bold text-white;
+  }
+
+  .section-subtitle {
+    @apply text-brand-metal-light text-lg leading-relaxed max-w-2xl;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold;
+  }
+
+  .badge-blue {
+    @apply badge bg-brand-blue/15 text-brand-blue-light border border-brand-blue/30;
+  }
+
+  .badge-metal {
+    @apply badge bg-white/10 text-gray-300 border border-white/10;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-3 bg-white/[0.05] border border-white/[0.1] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-brand-blue/60 focus:bg-white/[0.08] transition-all duration-200;
+    /* Specific styling for select dropdowns */
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1.2em;
+    padding-right: 2.5rem;
+  }
+
+  /* Dropdown options styling */
+  select.input-field option {
+    @apply bg-[#111827] text-white py-2;
+  }
+
+  .gradient-text {
+    @apply bg-gradient-to-r from-brand-blue-light via-white to-brand-blue-light bg-clip-text text-transparent;
+  }
+
+  .divider-line {
+    @apply h-px bg-gradient-to-r from-transparent via-white/10 to-transparent;
+  }
+
+  .container-section {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+}
+
+/* ── Utility Animations ── */
+@layer utilities {
+  .animation-delay-200 {
+    animation-delay: 200ms;
+  }
+
+  .animation-delay-400 {
+    animation-delay: 400ms;
+  }
+
+  .animation-delay-600 {
+    animation-delay: 600ms;
+  }
+
+  /* Watermark Overlay */
+  .watermark-overlay {
+    @apply absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden z-10 select-none;
+  }
+
+  .watermark-text {
+    @apply text-white/10 text-[10px] md:text-xs font-bold whitespace-nowrap uppercase tracking-[0.2em] transform -rotate-12;
+    text-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Skeleton Loading Animation */
+  .skeleton-pulse {
+    @apply bg-white/[0.03] animate-pulse rounded-xl overflow-hidden relative;
+  }
+
+  .skeleton-pulse::after {
+    content: "";
+    @apply absolute inset-0;
+    background: linear-gradient(90deg,
+        transparent,
+        rgba(255, 255, 255, 0.05),
+        transparent);
+    animation: skeleton-shimmer 2s infinite;
+  }
+
+  @keyframes skeleton-shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .glow-blue {
+    box-shadow: 0 0 30px rgba(0, 102, 255, 0.4), 0 0 80px rgba(0, 102, 255, 0.1);
+  }
+
+  .noise-bg {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  }
+}

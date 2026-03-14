@@ -1,0 +1,11 @@
+<svg width="200" height="80" viewBox="0 0 200 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M20 50C30 40 45 40 55 50C65 60 80 60 90 50C100 40 115 40 125 50C135 60 150 60 160 50" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.5">
+    <animate attributeName="stroke-dasharray" from="0, 500" to="500, 0" dur="3s" repeatCount="1" />
+  </path>
+  <text x="30" y="45" font-family="'Brush Script MT', cursive" font-size="24" fill="white" opacity="0.8">
+    Axel Perez
+  </text>
+  <text x="35" y="60" font-family="sans-serif" font-size="8" font-weight="bold" fill="white" opacity="0.4" letter-spacing="4">
+    SIGNATURE SERIES
+  </text>
+</svg>

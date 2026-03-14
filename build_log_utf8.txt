@@ -1,0 +1,248 @@
+﻿
+> arqovex-app@0.1.0 build
+> next build
+
+  Γû▓ Next.js 14.2.35
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+ Γ£ô Compiled successfully
+   Linting and checking validity of types ...
+node.exe : 
+En C:\Program 
+Files\nodejs\npm.ps1: 
+29 Carácter: 3
++   & $NODE_EXE 
+$NPM_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~
+    + CategoryInfo    
+          : NotSpeci  
+  fied: (:String) [   
+ ], RemoteExceptio    
+n
+    + FullyQualifiedE 
+   rrorId : NativeCo  
+  mmandError
+ 
+Failed to compile.
+
+./src/app/admin/page.t
+sx
+79:8  Warning: React 
+Hook useEffect has 
+missing dependencies: 
+'router' and 
+'supabase'. Either 
+include them or 
+remove the dependency 
+array.  react-hooks/ex
+haustive-deps
+528:61  Warning: 
+Using `<img>` could 
+result in slower LCP 
+and higher bandwidth. 
+Consider using 
+`<Image />` from 
+`next/image` to 
+automatically 
+optimize images. This 
+may incur additional 
+usage or cost from 
+your provider. See: ht
+tps://nextjs.org/docs/
+messages/no-img-elemen
+t  @next/next/no-img-e
+lement
+528:61  Warning: img 
+elements must have an 
+alt prop, either with 
+meaningful text, or 
+an empty string for 
+decorative images.  
+jsx-a11y/alt-text
+
+./src/app/auth/login/p
+age.tsx
+178:25  Error: `"` 
+can be escaped with 
+`&quot;`, `&ldquo;`, 
+`&#34;`, `&rdquo;`.  r
+eact/no-unescaped-enti
+ties
+178:117  Error: `"` 
+can be escaped with 
+`&quot;`, `&ldquo;`, 
+`&#34;`, `&rdquo;`.  r
+eact/no-unescaped-enti
+ties
+
+./src/app/auth/registr
+o/page.tsx
+18:11  Error: 
+'router' is assigned 
+a value but never 
+used.  @typescript-esl
+int/no-unused-vars
+
+./src/app/catalogo/pag
+e.tsx
+66:8  Warning: React 
+Hook useEffect has a 
+missing dependency: 
+'supabase'. Either 
+include it or remove 
+the dependency array. 
+ react-hooks/exhaustiv
+e-deps
+
+./src/app/dashboard/pa
+ge.tsx
+43:58  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esl
+int/no-explicit-any
+52:57  Error: 
+Unexpected any. 
+Specify a different 
+type.  @typescript-esl
+int/no-explicit-any
+57:8  Warning: React 
+Hook useEffect has 
+missing dependencies: 
+'router' and 
+'supabase'. Either 
+include them or 
+remove the dependency 
+array.  react-hooks/ex
+haustive-deps
+
+./src/app/layout.tsx
+29:9  Warning: Custom 
+fonts not added in 
+`pages/_document.js` 
+will only load for a 
+single page. This is 
+discouraged. See: http
+s://nextjs.org/docs/me
+ssages/no-page-custom-
+font  @next/next/no-pa
+ge-custom-font
+
+./src/app/plano/[id]/p
+age.tsx
+91:8  Warning: React 
+Hook useEffect has a 
+missing dependency: 
+'supabase'. Either 
+include it or remove 
+the dependency array. 
+ react-hooks/exhaustiv
+e-deps
+110:11  Error: 
+'handleComprar' is 
+assigned a value but 
+never used.  @typescri
+pt-eslint/no-unused-va
+rs
+160:55  Error: React 
+Hook "useState" is 
+called conditionally. 
+React Hooks must be 
+called in the exact 
+same order in every 
+component render. Did 
+you accidentally call 
+a React Hook after an 
+early return?  react-h
+ooks/rules-of-hooks
+
+./src/components/layou
+t/Footer.tsx
+51:29  Error: `"` can 
+be escaped with 
+`&quot;`, `&ldquo;`, 
+`&#34;`, `&rdquo;`.  r
+eact/no-unescaped-enti
+ties
+51:121  Error: `"` 
+can be escaped with 
+`&quot;`, `&ldquo;`, 
+`&#34;`, `&rdquo;`.  r
+eact/no-unescaped-enti
+ties
+
+./src/components/layou
+t/Header.tsx
+6:32  Error: 'User' 
+is defined but never 
+used.  @typescript-esl
+int/no-unused-vars
+6:78  Error: 
+'Instagram' is 
+defined but never 
+used.  @typescript-esl
+int/no-unused-vars
+67:8  Warning: React 
+Hook useEffect has a 
+missing dependency: 
+'supabase'. Either 
+include it or remove 
+the dependency array. 
+ react-hooks/exhaustiv
+e-deps
+
+./src/components/secti
+ons/FeaturedPlansSecti
+on.tsx
+91:8  Warning: React 
+Hook useEffect has a 
+missing dependency: 
+'supabase'. Either 
+include it or remove 
+the dependency array. 
+ react-hooks/exhaustiv
+e-deps
+
+./src/components/secti
+ons/TestimonialsSectio
+n.tsx
+67:33  Error: `"` can 
+be escaped with 
+`&quot;`, `&ldquo;`, 
+`&#34;`, `&rdquo;`.  r
+eact/no-unescaped-enti
+ties
+67:52  Error: `"` can 
+be escaped with 
+`&quot;`, `&ldquo;`, 
+`&#34;`, `&rdquo;`.  r
+eact/no-unescaped-enti
+ties
+
+./src/components/ui/Pl
+anoCard.tsx
+13:5  Error: 'Tag' is 
+defined but never 
+used.  @typescript-esl
+int/no-unused-vars
+37:11  Error: 
+'discountPercent' is 
+assigned a value but 
+never used.  @typescri
+pt-eslint/no-unused-va
+rs
+41:11  Error: 
+'isPlano' is assigned 
+a value but never 
+used.  @typescript-esl
+int/no-unused-vars
+
+info  - Need to 
+disable some ESLint 
+rules? Learn more 
+here: https://nextjs.o
+rg/docs/basic-features
+/eslint#disabling-rule
+s
