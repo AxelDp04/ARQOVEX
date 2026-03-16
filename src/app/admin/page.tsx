@@ -358,6 +358,56 @@ export default function AdminPage() {
         }
     };
 
+    const cleanupRejectedVendedores = async () => {
+        const rejectedCount = solicitudesVendedores.filter(s => s.estado === 'rechazado').length;
+        if (rejectedCount === 0) {
+            alert("No hay solicitudes de vendedores rechazadas para limpiar.");
+            return;
+        }
+
+        if (!confirm(`¿Estás seguro de que deseas eliminar permanentemente ${rejectedCount} solicitudes de vendedores rechazadas?`)) return;
+        
+        try {
+            const { error } = await supabase
+                .from("solicitudes_vendedores")
+                .delete()
+                .eq("estado", 'rechazado');
+            
+            if (error) throw error;
+            alert("Limpieza de vendedores completada.");
+            fetchSolicitudesVendedores();
+        } catch (err: unknown) {
+            const error = err as Error;
+            console.error("Error cleaning up vendeurs:", error.message);
+            alert("Error al limpiar solicitudes: " + error.message);
+        }
+    };
+
+    const cleanupRejectedPropiedades = async () => {
+        const rejectedCount = solicitudes.filter(s => s.estado === 'descartado').length;
+        if (rejectedCount === 0) {
+            alert("No hay solicitudes de propiedades descartadas para limpiar.");
+            return;
+        }
+
+        if (!confirm(`¿Estás seguro de que deseas eliminar permanentemente ${rejectedCount} solicitudes de propiedades descartadas?`)) return;
+        
+        try {
+            const { error } = await supabase
+                .from("solicitudes_socios")
+                .delete()
+                .eq("estado", 'descartado');
+            
+            if (error) throw error;
+            alert("Limpieza de propiedades completada.");
+            fetchSolicitudes();
+        } catch (err: unknown) {
+            const error = err as Error;
+            console.error("Error cleaning up properties requests:", error.message);
+            alert("Error al limpiar solicitudes: " + error.message);
+        }
+    };
+
     const checkAuthAndData = useCallback(async () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
@@ -901,9 +951,18 @@ export default function AdminPage() {
                                         <Building2 className="w-6 h-6 text-brand-blue" />
                                         Solicitudes de Propiedades
                                     </h2>
-                                    <span className="badge bg-orange-500/10 text-orange-400 border-orange-500/20">
-                                        {solicitudes.length} Solicitudes
-                                    </span>
+                                    <div className="flex items-center gap-4">
+                                        <button
+                                            onClick={cleanupRejectedPropiedades}
+                                            className="btn-ghost text-xs py-1.5 px-3 text-red-400 border-red-500/20 hover:bg-red-500/10 flex items-center gap-2"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                            Limpiar Descartadas
+                                        </button>
+                                        <span className="badge bg-orange-500/10 text-orange-400 border-orange-500/20">
+                                            {solicitudes.length} Solicitudes
+                                        </span>
+                                    </div>
                                 </div>
                                 {solicitudes.length === 0 ? (
                                     <div className="text-center py-12 text-gray-500">
@@ -958,9 +1017,18 @@ export default function AdminPage() {
                                         <Users className="w-6 h-6 text-brand-blue" />
                                         Solicitudes de Vendedores
                                     </h2>
-                                    <span className="badge bg-purple-500/10 text-purple-400 border-purple-500/20">
-                                        {solicitudesVendedores.length} Solicitudes
-                                    </span>
+                                    <div className="flex items-center gap-4">
+                                        <button
+                                            onClick={cleanupRejectedVendedores}
+                                            className="btn-ghost text-xs py-1.5 px-3 text-red-400 border-red-500/20 hover:bg-red-500/10 flex items-center gap-2"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                            Limpiar Rechazados
+                                        </button>
+                                        <span className="badge bg-purple-500/10 text-purple-400 border-purple-500/20">
+                                            {solicitudesVendedores.length} Solicitudes
+                                        </span>
+                                    </div>
                                 </div>
                                 {solicitudesVendedores.length === 0 ? (
                                     <div className="text-center py-12 text-gray-500">
