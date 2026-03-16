@@ -599,7 +599,7 @@ export default function AdminPage() {
 
                                 {/* Simple Upload Form - Regression */}
                                 {showSimpleForm && (
-                                    <div className="mb-10 p-8 rounded-3xl bg-white/[0.03] border border-brand-blue/30 shadow-blue-glow-sm overflow-hidden animate-slide-up">
+                                    <div className="mb-10 p-8 rounded-3xl bg-white/[0.03] border border-brand-blue/30 shadow-blue-glow-sm overflow-hidden animate-slide-up max-w-4xl mx-auto">
                                         <div className="flex items-center justify-between gap-3 mb-8 border-b border-white/10 pb-4">
                                             <div className="flex items-center gap-3">
                                                 <Upload className="w-6 h-6 text-brand-blue" />
