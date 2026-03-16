@@ -42,7 +42,15 @@ export default function CitasForm({ propiedadId, propiedadTitulo }: CitasFormPro
 
             if (res.ok) {
                 setSuccess(true);
-                showToast("¡Solicitud enviada! El equipo de ARQOVEX se pondrá en contacto contigo pronto.", "success");
+                showToast("¡Solicitud enviada! Redirigiendo a WhatsApp...", "success");
+
+                // Redirección a WhatsApp con mensaje pre-configurado
+                const phone = "18296503337";
+                const message = `Hola ARQOVEX, acabo de agendar una cita para la propiedad: ${propiedadTitulo}.\n\nMis datos:\n- Nombre: ${formData.nombre_completo}\n- Fecha: ${formData.fecha_cita}\n- Teléfono: ${formData.telefono}\n\nPropiedad: ${window.location.href}`;
+                
+                setTimeout(() => {
+                    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
+                }, 1500);
             } else {
                 const data = await res.json();
                 showToast(data.error || "Error al enviar solicitud", "error");

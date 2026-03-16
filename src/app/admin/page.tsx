@@ -1191,15 +1191,13 @@ export default function AdminPage() {
                                         Moderación de Contenido
                                     </h2>
                                     <div className="flex items-center gap-4">
-                                        {planos.some(p => p.estado_revision === 'rechazado') && (
-                                            <button
-                                                onClick={cleanupRejectedPlanos}
-                                                className="btn-ghost text-xs py-1.5 px-3 text-red-400 border-red-500/20 hover:bg-red-500/10 flex items-center gap-2"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                                Limpiar Rechazados
-                                            </button>
-                                        )}
+                                        <button
+                                            onClick={cleanupRejectedPlanos}
+                                            className="btn-ghost text-xs py-1.5 px-3 text-red-400 border-red-500/20 hover:bg-red-500/10 flex items-center gap-2"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                            Limpiar Rechazados
+                                        </button>
                                         <span className="badge bg-yellow-500/10 text-yellow-400 border-yellow-500/20">
                                             {planos.filter(p => p.estado_revision === 'en_revision').length} En Revisión
                                         </span>

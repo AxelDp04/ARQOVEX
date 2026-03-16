@@ -88,6 +88,26 @@ export async function POST(request: Request) {
                     html: emailHtml,
                 });
             } else {
+                // 3. ENVIAR COPIA AL CLIENTE
+                await resend.emails.send({
+                    from: 'ARQOVEX Real Estate <onboarding@resend.dev>', 
+                    to: email,
+                    subject: `Confirmación de Solicitud de Cita - ARQOVEX`,
+                    html: `
+                        <div style="font-family: sans-serif; padding: 20px; background-color: #0d1424; color: #fff;">
+                            <h2 style="color: #0066ff;">¡Hola ${nombre_completo}!</h2>
+                            <p>Hemos recibido tu solicitud para visitar la propiedad.</p>
+                            <p><strong>Detalles de tu cita programada:</strong></p>
+                            <ul>
+                                <li>Fecha sugerida: ${new Date(fecha_cita).toLocaleDateString()}</li>
+                                <li>Propiedad: <a href="${url_propiedad}" style="color: #0066ff;">Ver Propiedad</a></li>
+                            </ul>
+                            <p>Un asesor de nuestro equipo se pondrá en contacto contigo muy pronto a través de WhatsApp o llamada telefónica.</p>
+                            <hr style="border: 1px solid #1e293b;" />
+                            <p style="font-size: 12px; color: #94a3b8;">ARQOVEX Real Estate - Innovación Inmobiliaria</p>
+                        </div>
+                    `,
+                });
                 emailSent = true;
             }
         } catch (emailErr) {
