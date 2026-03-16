@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import {
     Heart, Download, Check, ArrowLeft, Star,
-    Maximize2, BedDouble, Bath, Layers, FileCheck, ShieldCheck, Ruler, Loader2, ChevronLeft, ChevronRight, Car, MessageCircle, X, ChevronDown, User
+    Maximize2, BedDouble, Bath, Layers, FileCheck, ShieldCheck, Ruler, Loader2, ChevronLeft, ChevronRight, Car, MessageCircle, X, ChevronDown, User, MapPin
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import MainLayout from "@/components/layout/MainLayout";
@@ -308,6 +308,55 @@ export default function PlanoDetailPage() {
                                 </div>
                             )}
 
+                            {/* Virtual Tour Video Section */}
+                            {plano.video_url && (
+                                <div className="space-y-4">
+                                    <h2 className="font-display text-xl font-bold text-white flex items-center gap-3">
+                                        <Maximize2 className="w-5 h-5 text-brand-blue" />
+                                        Tour Virtual de la Propiedad
+                                    </h2>
+                                    <div className="relative aspect-video w-full rounded-2xl overflow-hidden glass-card border-brand-blue/20 shadow-blue-glow-sm">
+                                        {plano.video_url.includes('youtube.com') || plano.video_url.includes('youtu.be') ? (
+                                            <iframe 
+                                                src={`https://www.youtube.com/embed/${plano.video_url.includes('v=') ? plano.video_url.split('v=')[1].split('&')[0] : plano.video_url.split('/').pop()}`}
+                                                className="absolute inset-0 w-full h-full border-0"
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                allowFullScreen
+                                            />
+                                        ) : plano.video_url.includes('instagram.com') ? (
+                                            <iframe 
+                                                src={`${plano.video_url.split('?')[0]}reel/embed`} 
+                                                className="absolute inset-0 w-full h-full border-0"
+                                                allowFullScreen
+                                            />
+                                        ) : (
+                                            <video 
+                                                src={plano.video_url} 
+                                                controls 
+                                                className="absolute inset-0 w-full h-full object-cover"
+                                                poster={plano.imagen_url}
+                                            />
+                                        )}
+                                    </div>
+                                    <p className="text-[10px] text-gray-500 italic text-center">Video proporcionado por el anunciante / Propietario</p>
+                                </div>
+                            )}
+
+                            {/* Interactive Map Section */}
+                            {plano.iframe_mapa && (
+                                <div className="space-y-4">
+                                    <h2 className="font-display text-xl font-bold text-white flex items-center gap-3">
+                                        <MapPin className="w-5 h-5 text-brand-blue" />
+                                        Ubicación Interactiva
+                                    </h2>
+                                    <div 
+                                        className="w-full rounded-2xl overflow-hidden glass-card border-brand-blue/20 shadow-blue-glow-sm aspect-video mb-4"
+                                        dangerouslySetInnerHTML={{ __html: plano.iframe_mapa.includes('<iframe') ? plano.iframe_mapa : `<iframe src="${plano.iframe_mapa}" class="w-full h-full border-0"></iframe>` }}
+                                    />
+                                    <p className="text-[10px] text-gray-500 italic text-center">Mapa interactivo preciso de la zona</p>
+                                </div>
+                            )}
+
                             {/* Specs Bar */}
                             <div className={`glass-card p-6 grid grid-cols-2 ${isTerreno ? 'md:grid-cols-3' : 'md:grid-cols-4'} gap-6`}>
                                 <div className="flex flex-col items-center justify-center text-center gap-2">
@@ -409,6 +458,27 @@ export default function PlanoDetailPage() {
                                     <h1 className="font-display text-2xl md:text-3xl font-bold text-white mb-2 leading-tight break-words whitespace-pre-wrap">
                                         {plano.titulo}
                                     </h1>
+
+                                    {/* Location Text & Map Link */}
+                                    <div className="flex flex-wrap items-center gap-3 mt-3">
+                                        {plano.ubicacion && (
+                                            <div className="flex items-center gap-1.5 text-gray-400 text-sm">
+                                                <MapPin className="w-3.5 h-3.5 text-brand-blue" />
+                                                <span>{plano.ubicacion}</span>
+                                            </div>
+                                        )}
+                                        {plano.enlace_mapa && (
+                                            <Link 
+                                                href={plano.enlace_mapa} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer"
+                                                className="text-[10px] font-bold text-brand-blue hover:text-white transition-colors flex items-center gap-1 bg-brand-blue/10 px-2 py-1 rounded-md border border-brand-blue/20"
+                                            >
+                                                Ver en Google Maps
+                                                <Maximize2 className="w-3 h-3" />
+                                            </Link>
+                                        )}
+                                    </div>
                                 </div>
 
                                 <div className="flex items-center justify-between py-4 border-y border-white/[0.06]">

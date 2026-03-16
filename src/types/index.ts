@@ -38,6 +38,9 @@ export interface Plano {
     vendedor_id?: string
     estado_revision?: 'en_revision' | 'publicado' | 'rechazado'
     seccion?: 'planos' | 'inmobiliaria'
+    video_url?: string
+    enlace_mapa?: string
+    iframe_mapa?: string
 }
 
 export interface Categoria {

@@ -58,7 +58,10 @@ export default function AdminPage() {
         parqueos: "0",
         ubicacion: "",
         seccion: "planos", 
-        categoria_id: "7776472b-8a16-4117-91a7-19cb9e94326f" 
+        categoria_id: "7776472b-8a16-4117-91a7-19cb9e94326f",
+        video_url: "",
+        enlace_mapa: "",
+        iframe_mapa: ""
     });
     const [portadaFile, setPortadaFile] = useState<File | null>(null);
     const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
@@ -724,6 +727,40 @@ export default function AdminPage() {
                                             </div>
                                         </div>
 
+                                        <div className="space-y-2 mb-6">
+                                            <label className="text-[10px] font-bold text-brand-blue uppercase tracking-widest flex items-center gap-2">
+                                                <Upload className="w-3 h-3" /> Tour Virtual (Video URL)
+                                            </label>
+                                            <input 
+                                                value={simplePlano.video_url}
+                                                onChange={e => setSimplePlano({...simplePlano, video_url: e.target.value})}
+                                                className="input-field py-4" placeholder="Ej: https://www.youtube.com/watch?v=..."
+                                            />
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-bold text-brand-blue uppercase tracking-widest flex items-center gap-2">
+                                                    <MapPin className="w-3 h-3" /> Enlace Google Maps
+                                                </label>
+                                                <input 
+                                                    value={simplePlano.enlace_mapa}
+                                                    onChange={e => setSimplePlano({...simplePlano, enlace_mapa: e.target.value})}
+                                                    className="input-field py-4" placeholder="https://maps.app.goo.gl/..."
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-bold text-brand-blue uppercase tracking-widest flex items-center gap-2">
+                                                    <MapPin className="w-3 h-3" /> Iframe Mapa Embed
+                                                </label>
+                                                <input 
+                                                    value={simplePlano.iframe_mapa}
+                                                    onChange={e => setSimplePlano({...simplePlano, iframe_mapa: e.target.value})}
+                                                    className="input-field py-4" placeholder="Copia el código <iframe>"
+                                                />
+                                            </div>
+                                        </div>
+
                                         <div className="space-y-2 mb-8">
                                             <label className="text-[10px] font-bold text-brand-blue uppercase tracking-widest">Descripción</label>
                                             <textarea 
@@ -916,7 +953,10 @@ export default function AdminPage() {
                                                             parqueos: "0",
                                                             ubicacion: "",
                                                             seccion: "planos",
-                                                            categoria_id: categorias[0]?.id || ""
+                                                            categoria_id: categorias[0]?.id || "",
+                                                            video_url: "",
+                                                            enlace_mapa: "",
+                                                            iframe_mapa: ""
                                                         });
                                                         setPortadaFile(null);
                                                         setGalleryFiles([]);

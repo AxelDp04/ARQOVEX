@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
     X, Upload, CheckCircle, AlertCircle, Loader2, Save, 
     Images, FileText, ArrowRight, ArrowLeft, 
-    DollarSign, Pencil, Plus
+    DollarSign, Pencil, Plus, MapPin
 } from "lucide-react";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
@@ -41,7 +41,10 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
         pisos: 0,
         categoria_id: "",
         estilo: "Contemporáneo",
-        tipo_propiedad: "Plano Arquitectónico"
+        tipo_propiedad: "Plano Arquitectónico",
+        video_url: "",
+        enlace_mapa: "",
+        iframe_mapa: ""
     });
 
     const [imgPrincipal, setImgPrincipal] = useState<File | null>(null);
@@ -62,7 +65,10 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
                 pisos: plano.pisos || 0,
                 categoria_id: plano.categoria_id || "",
                 estilo: plano.estilo || "Contemporáneo",
-                tipo_propiedad: plano.tipo_propiedad || "Plano Arquitectónico"
+                tipo_propiedad: plano.tipo_propiedad || "Plano Arquitectónico",
+                video_url: plano.video_url || "",
+                enlace_mapa: plano.enlace_mapa || "",
+                iframe_mapa: plano.iframe_mapa || ""
             });
             setImgPrincipalPreview(plano.imagen_url || "");
             setStep(1);
@@ -78,7 +84,10 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
                 pisos: 0,
                 categoria_id: "",
                 estilo: "Contemporáneo",
-                tipo_propiedad: "Plano Arquitectónico"
+                tipo_propiedad: "Plano Arquitectónico",
+                video_url: "",
+                enlace_mapa: "",
+                iframe_mapa: ""
             });
             setImgPrincipalPreview("");
             setImgPrincipal(null);
@@ -438,6 +447,61 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
                                             </div>
                                         </div>
                                     )}
+                                </div>
+
+                                {/* Video URL Section */}
+                                <div className="space-y-4 pt-4 border-t border-white/5">
+                                    <label className="text-[10px] uppercase font-bold text-brand-blue tracking-widest block flex items-center gap-2">
+                                        Tour Virtual (Video URL)
+                                        <span className="text-[8px] text-gray-500 font-normal normal-case">(YouTube, Instagram, MP4...)</span>
+                                    </label>
+                                    <div className="relative">
+                                        <Upload className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                                        <input 
+                                            name="video_url" 
+                                            value={formData.video_url} 
+                                            onChange={handleInputChange}
+                                            placeholder="Enlace del video (ej: https://www.youtube.com/watch?v=...)" 
+                                            className="input-field py-4 pl-12"
+                                        />
+                                    </div>
+                                    <p className="text-[9px] text-gray-500 italic">El video aparecerá automáticamente en la galería de detalles de la propiedad.</p>
+                                </div>
+
+                                {/* Map Section */}
+                                <div className="space-y-6 pt-6 border-t border-white/5">
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] uppercase font-bold text-brand-blue tracking-widest block flex items-center gap-2">
+                                            Enlace de Google Maps (Link Directo)
+                                            <span className="text-[8px] text-gray-500 font-normal normal-case">(Opcional)</span>
+                                        </label>
+                                        <div className="relative">
+                                            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                                            <input 
+                                                name="enlace_mapa" 
+                                                value={formData.enlace_mapa} 
+                                                onChange={handleInputChange}
+                                                placeholder="https://maps.app.goo.gl/..." 
+                                                className="input-field py-4 pl-12"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] uppercase font-bold text-brand-blue tracking-widest block flex items-center gap-2">
+                                            Mapa Interactivo (Iframe Embed)
+                                            <span className="text-[8px] text-gray-500 font-normal normal-case">(Opcional - Avanzado)</span>
+                                        </label>
+                                        <textarea 
+                                            name="iframe_mapa" 
+                                            value={formData.iframe_mapa} 
+                                            onChange={handleInputChange}
+                                            rows={2}
+                                            placeholder="Copia aquí el código iframe de Google Maps" 
+                                            className="input-field py-3 text-[10px] font-mono"
+                                        />
+                                        <p className="text-[9px] text-gray-500 italic">Comparte ubicación &gt; Insertar mapa &gt; Copiar HTML</p>
+                                    </div>
                                 </div>
 
                                 <div className="space-y-4">
