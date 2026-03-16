@@ -22,6 +22,7 @@ export default function Header() {
     const [isScrolled, setIsScrolled] = useState(false);
     const [user, setUser] = useState<SupabaseUser | null>(null);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [isSocio, setIsSocio] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const supabase = createClient();
 
@@ -32,16 +33,15 @@ export default function Header() {
     }, []);
 
     useEffect(() => {
-        const checkAdmin = async (userId: string) => {
+        const checkProfile = async (userId: string) => {
             try {
-                const { data, error } = await supabase.from('perfiles').select('es_admin').eq('id', userId).maybeSingle();
-                if (error) {
-                    // Only log if it's not a "not found" error, or ignore if it's common
-                    console.warn("Profile check hint:", error.message);
+                const { data, error } = await supabase.from('perfiles').select('es_admin, es_socio').eq('id', userId).maybeSingle();
+                if (!error && data) {
+                    setIsAdmin(data.es_admin === true);
+                    setIsSocio(data.es_socio === true);
                 }
-                setIsAdmin(data?.es_admin === true);
             } catch (err) {
-                console.error("Fetch Exception:", err);
+                console.error("Profile check Exception:", err);
             }
         };
 
@@ -51,23 +51,23 @@ export default function Header() {
                 const userEmail = data.user.email?.toLowerCase();
                 if (userEmail && ADMIN_EMAILS.includes(userEmail)) {
                     setIsAdmin(true);
-                } else {
-                    checkAdmin(data.user.id);
                 }
+                checkProfile(data.user.id);
             }
         });
 
         const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-            setUser(session?.user ?? null);
-            if (session?.user) {
-                const userEmail = session.user.email?.toLowerCase();
+            const currentUser = session?.user ?? null;
+            setUser(currentUser);
+            if (currentUser) {
+                const userEmail = currentUser.email?.toLowerCase();
                 if (userEmail && ADMIN_EMAILS.includes(userEmail)) {
                     setIsAdmin(true);
-                } else {
-                    checkAdmin(session.user.id);
                 }
+                checkProfile(currentUser.id);
             } else {
                 setIsAdmin(false);
+                setIsSocio(false);
             }
         });
         return () => listener.subscription.unsubscribe();
@@ -108,15 +108,21 @@ export default function Header() {
 
                     {/* Desktop Navigation */}
                     <nav className="hidden md:flex items-center gap-1">
-                        {navLinks.map((link) => (
-                            <Link
-                                key={link.href}
-                                href={link.href}
-                                className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white rounded-lg hover:bg-white/5 transition-all duration-200"
-                            >
-                                {link.label}
-                            </Link>
-                        ))}
+                        {navLinks.map((link) => {
+                            const isAssociateLink = link.href === "/vender-con-nosotros";
+                            const dynamicLabel = (isAssociateLink && isSocio) ? "Portal de Socios" : link.label;
+                            const dynamicHref = (isAssociateLink && isSocio) ? "/dashboard?tab=vault" : link.href;
+
+                            return (
+                                <Link
+                                    key={link.href}
+                                    href={dynamicHref}
+                                    className="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white rounded-lg hover:bg-white/5 transition-all duration-200"
+                                >
+                                    {dynamicLabel}
+                                </Link>
+                            );
+                        })}
                         {isAdmin && (
                             <Link
                                 href="/admin"
@@ -209,16 +215,22 @@ export default function Header() {
             {isMenuOpen && (
                 <div className="md:hidden bg-[var(--page-bg)]/98 backdrop-blur-xl border-t border-white/[0.06]">
                     <div className="container-section py-4 space-y-1">
-                        {navLinks.map((link) => (
-                            <Link
-                                key={link.href}
-                                href={link.href}
-                                onClick={() => setIsMenuOpen(false)}
-                                className="flex items-center px-4 py-3 text-gray-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
-                            >
-                                {link.label}
-                            </Link>
-                        ))}
+                        {navLinks.map((link) => {
+                            const isAssociateLink = link.href === "/vender-con-nosotros";
+                            const dynamicLabel = (isAssociateLink && isSocio) ? "Portal de Socios" : link.label;
+                            const dynamicHref = (isAssociateLink && isSocio) ? "/dashboard?tab=vault" : link.href;
+
+                            return (
+                                <Link
+                                    key={link.href}
+                                    href={dynamicHref}
+                                    onClick={() => setIsMenuOpen(false)}
+                                    className="flex items-center px-4 py-3 text-gray-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
+                                >
+                                    {dynamicLabel}
+                                </Link>
+                            );
+                        })}
                         <div className="h-px bg-white/5 my-2" />
                         {user ? (
                             <>
