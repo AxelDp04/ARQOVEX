@@ -1,0 +1,90 @@
+﻿"use client";
+
+import Link from "next/link";
+import Image from "next/image";
+import { ArrowRight, ChevronDown } from "lucide-react";
+import { LOGO_SRC } from "@/lib/constants";
+
+export default function HeroSection() {
+  return (
+    <section className="relative min-h-screen flex flex-col justify-center overflow-hidden bg-[var(--page-bg)]">
+      {/* Background */}
+      <div className="absolute inset-0 bg-[var(--page-bg)] overflow-hidden">
+        {/* Fine grid - deriva suave */}
+        <div
+          className="absolute inset-0 opacity-[0.02] bg-grid-drift"
+          style={{
+            backgroundImage: `linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)`,
+            backgroundSize: "80px 80px",
+          }}
+        />
+        {/* Gradient orbs - movimiento suave */}
+        <div className="absolute top-[-20%] right-[-10%] w-[900px] h-[900px] rounded-full bg-[#0066FF]/6 blur-[140px] animate-bg-float" />
+        <div className="absolute bottom-[-15%] left-[-15%] w-[700px] h-[700px] rounded-full bg-[#0044CC]/8 blur-[120px] animate-bg-float-slow" />
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#0066FF]/40 to-transparent" />
+      </div>
+
+      <div className="container-section relative z-10 pt-24 pb-20">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+          <div className="space-y-8">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-[#4D94FF]">
+              Rep├║blica Dominicana
+            </p>
+            <h1 className="font-display text-4xl sm:text-5xl md:text-6xl xl:text-7xl font-bold leading-[1.05] tracking-tight text-white">
+              Excelencia en dise├▒o{" "}
+              <span className="bg-gradient-to-r from-[#0066FF] via-[#4D94FF] to-white bg-clip-text text-transparent">
+                y gesti├│n inmobiliaria
+              </span>
+            </h1>
+            <p className="text-lg text-gray-400 max-w-md leading-relaxed">
+              Consultor├¡a de ingenier├¡a y arquitectura. Innovaci├│n y est├índares t├⌐cnicos en cada proyecto.
+            </p>
+            <div className="flex flex-wrap gap-4">
+              <Link
+                href="/catalogo"
+                className="inline-flex items-center gap-2 px-7 py-3.5 bg-gradient-to-r from-[#0066FF] to-[#0044CC] text-white font-semibold rounded-lg transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,102,255,0.4)] hover:scale-[1.02]"
+              >
+                Ver cat├ílogo
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+              <Link
+                href="/contacto"
+                className="inline-flex items-center gap-2 px-7 py-3.5 border border-white/20 text-gray-300 font-semibold rounded-lg transition-all duration-300 hover:border-[#0066FF]/50 hover:text-white hover:bg-white/5"
+              >
+                Proyecto a medida
+              </Link>
+            </div>
+            <div className="flex items-center gap-8 pt-4 text-sm text-gray-500">
+              <span>Planos certificados</span>
+              <span className="w-1 h-1 rounded-full bg-gray-600" />
+              <span>Entrega inmediata</span>
+              <span className="w-1 h-1 rounded-full bg-gray-600" />
+              <span>Soporte t├⌐cnico</span>
+            </div>
+          </div>
+
+          <div className="relative flex justify-center lg:justify-end">
+            <div className="relative w-[280px] h-[280px] sm:w-[340px] sm:h-[340px] md:w-[380px] md:h-[380px] rounded-2xl border border-white/[0.08] bg-white/[0.02] flex items-center justify-center backdrop-blur-sm">
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#0066FF]/10 to-transparent opacity-60" />
+              <div className="relative w-40 h-40 sm:w-52 sm:h-52 md:w-56 md:h-56">
+                <Image
+                  src={LOGO_SRC}
+                  alt="ARQOVEX"
+                  fill
+                  sizes="(max-width: 640px) 160px, (max-width: 768px) 208px, 224px"
+                  className="object-contain"
+                  priority
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 text-gray-500">
+        <span className="text-[10px] uppercase tracking-widest">Scroll</span>
+        <ChevronDown className="w-4 h-4 animate-bounce" />
+      </div>
+    </section>
+  );
+}
