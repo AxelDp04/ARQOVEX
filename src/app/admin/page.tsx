@@ -584,28 +584,16 @@ export default function AdminPage() {
                     {/* Tab Content */}
                     {activeTab === 'gestion' && (
                         <div className="space-y-8 animate-fade-in">
-                            <div className="glass-card p-6">
-                                <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
-                                    <h2 className="font-display text-xl font-bold text-white flex items-center gap-3">
-                                        <Images className="w-6 h-6 text-brand-blue" />
-                                        Gestión de Planos
-                                    </h2>
-                                    <div className="flex items-center gap-4">
-                                        <span className="badge bg-brand-blue/10 text-brand-blue border-brand-blue/20">
-                                            {planos.length} Planos Totales
-                                        </span>
-                                    </div>
-                                </div>
 
-                                {/* Simple Upload Form - Regression */}
-                                {showSimpleForm && (
-                                    <div className="mb-10 p-8 rounded-3xl bg-white/[0.03] border border-brand-blue/30 shadow-blue-glow-sm overflow-hidden animate-slide-up w-full max-w-4xl mx-auto">
-                                        <div className="flex items-center justify-between gap-3 mb-8 border-b border-white/10 pb-4">
-                                            <div className="flex items-center gap-3">
-                                                <Upload className="w-6 h-6 text-brand-blue" />
-                                                <h3 className="text-xl font-bold text-white uppercase tracking-widest">Publicar Proyecto</h3>
-                                            </div>
-                                            
+                            {/* Upload Form - outside glass-card so mx-auto actually works */}
+                            {showSimpleForm && (
+                                <div className="glass-card p-6 animate-slide-up">
+                                    <div className="flex items-center justify-between gap-3 mb-8 border-b border-white/10 pb-4">
+                                        <div className="flex items-center gap-3">
+                                            <Upload className="w-6 h-6 text-brand-blue" />
+                                            <h3 className="text-xl font-bold text-white uppercase tracking-widest">Publicar Proyecto</h3>
+                                        </div>
+                                        
                                             {/* Destination Selector */}
                                             <div className="flex bg-white/5 p-1 rounded-xl border border-white/10">
                                                 <button 
@@ -859,11 +847,7 @@ export default function AdminPage() {
                                             )}
                                         </div>
 
-                                        <div className="flex items-center justify-between border-t border-white/10 pt-6">
-                                            <div className="flex items-center gap-2 text-xs text-gray-500 italic">
-                                                <AlertCircle className="w-4 h-4 text-brand-blue" />
-                                                Se publicará instantáneamente en el catálogo.
-                                            </div>
+                                        <div className="flex flex-col items-center gap-4 border-t border-white/10 pt-6">
                                             <button 
                                                 onClick={async () => {
                                                     if (!simplePlano.titulo || !portadaFile || !simplePlano.precio) {
@@ -981,9 +965,27 @@ export default function AdminPage() {
                                                     </>
                                                 )}
                                             </button>
+                                            <div className="flex items-center gap-2 text-xs text-gray-500 italic">
+                                                <AlertCircle className="w-4 h-4 text-brand-blue" />
+                                                Se publicará instantáneamente en el catálogo.
+                                            </div>
                                         </div>
+                                </div>
+                            )}
+
+                            {/* Gestión de Planos Grid */}
+                            <div className="glass-card p-6">
+                                <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
+                                    <h2 className="font-display text-xl font-bold text-white flex items-center gap-3">
+                                        <Images className="w-6 h-6 text-brand-blue" />
+                                        Gestión de Planos
+                                    </h2>
+                                    <div className="flex items-center gap-4">
+                                        <span className="badge bg-brand-blue/10 text-brand-blue border-brand-blue/20">
+                                            {planos.length} Planos Totales
+                                        </span>
                                     </div>
-                                )}
+                                </div>
                                 {planos.length === 0 ? (
                                     <div className="text-center py-12 text-gray-500">
                                         No hay planos registrados aún.
