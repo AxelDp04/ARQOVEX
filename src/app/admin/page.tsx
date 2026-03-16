@@ -13,11 +13,11 @@ import {
 } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
 import { createClient } from "@/lib/supabase/client";
-import type { Categoria, Plano, Resena, SolicitudSocio, SolicitudVendedor } from "@/types";
+import type { Categoria, Plano, Resena, SolicitudSocio, SolicitudVendedor, Perfil } from "@/types";
 import Image from "next/image";
 import type { User } from "@supabase/supabase-js";
 
-type Tab = "gestion" | "socios" | "auditoria";
+type Tab = "gestion" | "socios" | "auditoria" | "comunidad";
 
 export default function AdminPage() {
     const router = useRouter();
@@ -42,6 +42,7 @@ export default function AdminPage() {
     const [solicitudesVendedores, setSolicitudesVendedores] = useState<SolicitudVendedor[]>([]);
     const [vendedorLoading, setVendedorLoading] = useState(false);
     const [sociosAprobados, setSociosAprobados] = useState<SolicitudVendedor[]>([]);
+    const [perfiles, setPerfiles] = useState<Perfil[]>([]);
     const [user, setUser] = useState<User | null>(null);
 
     // Simplied Upload Form State
@@ -126,7 +127,7 @@ export default function AdminPage() {
     const fetchSociosAprobados = useCallback(async () => {
         const { data, error } = await supabase
             .from("solicitudes_vendedores")
-            .select("*") // Simplified to fix relationship error
+            .select("*")
             .eq("estado", "aprobado")
             .order("created_at", { ascending: false });
 
@@ -134,6 +135,19 @@ export default function AdminPage() {
             console.error("Error fetching approved partners:", error.message);
         } else {
             setSociosAprobados(data || []);
+        }
+    }, [supabase]);
+
+    const fetchPerfiles = useCallback(async () => {
+        const { data, error } = await supabase
+            .from("perfiles")
+            .select("*")
+            .order("created_at", { ascending: false });
+
+        if (error) {
+            console.error("Supabase Error [AdminFetchPerfiles]:", error.message);
+        } else if (data) {
+            setPerfiles(data);
         }
     }, [supabase]);
 
@@ -450,7 +464,8 @@ export default function AdminPage() {
         fetchSolicitudes();
         fetchSolicitudesVendedores();
         fetchSociosAprobados();
-    }, [router, supabase]);
+        fetchPerfiles();
+    }, [router, supabase, fetchPerfiles, fetchPlanos, fetchResenas, fetchSociosAprobados, fetchSolicitudes, fetchSolicitudesVendedores]);
 
     const fetchCategorias = useCallback(async () => {
         const { data } = await supabase.from("categorias").select("*");
@@ -543,6 +558,21 @@ export default function AdminPage() {
                             {(planos.filter(p => p.estado_revision === 'en_revision').length + resenas.filter(r => !r.aprobado).length) > 0 && (
                                 <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-black flex items-center justify-center rounded-full shadow-lg border-2 border-[#020408] animate-pulse">
                                     {planos.filter(p => p.estado_revision === 'en_revision').length + resenas.filter(r => !r.aprobado).length}
+                                </span>
+                            )}
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('comunidad')}
+                            className={`flex-1 flex items-center justify-center gap-3 py-4 px-6 rounded-2xl font-bold transition-all border relative ${activeTab === 'comunidad' ? 'bg-brand-blue border-brand-blue text-white shadow-blue-glow' : 'bg-white/5 border-white/10 text-gray-500 hover:bg-white/10 hover:text-white'}`}
+                        >
+                            <Users className="w-5 h-5" />
+                            <div className="text-left">
+                                <div className="text-xs">COMUNIDAD</div>
+                                <div className="text-[8px] opacity-50 font-normal uppercase tracking-tighter">Usuarios y Roles</div>
+                            </div>
+                            {perfiles.length > 0 && (
+                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-brand-blue text-white text-[10px] font-black flex items-center justify-center rounded-full shadow-lg border-2 border-[#020408]">
+                                    {perfiles.length}
                                 </span>
                             )}
                         </button>
@@ -1313,6 +1343,73 @@ export default function AdminPage() {
                                                 </div>
                                             </div>
                                         ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'comunidad' && (
+                        <div className="space-y-8 animate-fade-in">
+                            <div className="glass-card p-6">
+                                <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
+                                    <h2 className="font-display text-xl font-bold text-white flex items-center gap-3">
+                                        <Users className="w-6 h-6 text-brand-blue" />
+                                        Usuarios y Comunidad
+                                    </h2>
+                                    <div className="flex items-center gap-4">
+                                        <span className="badge bg-brand-blue/10 text-brand-blue border-brand-blue/20">
+                                            {perfiles.length} Usuarios Activos
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {perfiles.map((p) => (
+                                        <div key={p.id} className="bg-white/[0.02] border border-white/5 rounded-xl p-4 flex items-center justify-between">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 rounded-full bg-brand-blue/10 flex items-center justify-center border border-brand-blue/20 overflow-hidden relative">
+                                                    {p.avatar_url ? (
+                                                        <Image 
+                                                            src={p.avatar_url} 
+                                                            alt={p.nombre_completo} 
+                                                            fill 
+                                                            className="object-cover"
+                                                        />
+                                                    ) : (
+                                                        <Users className="w-6 h-6 text-brand-blue opacity-50" />
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-bold text-white text-sm">{p.nombre_completo || "Usuario sin nombre"}</h4>
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        {p.es_admin || p.role === 'admin' ? (
+                                                            <span className="text-[10px] bg-red-500/10 text-red-400 border border-red-500/20 px-1.5 py-0.5 rounded-md font-bold uppercase">Admin</span>
+                                                        ) : p.es_socio ? (
+                                                            <span className="text-[10px] bg-green-500/10 text-green-400 border border-green-500/20 px-1.5 py-0.5 rounded-md font-bold uppercase">Socio Profesional</span>
+                                                        ) : (
+                                                            <span className="text-[10px] bg-white/5 text-gray-400 border border-white/10 px-1.5 py-0.5 rounded-md font-bold uppercase">Usuario</span>
+                                                        )}
+                                                        <span className="text-[10px] text-gray-600">•</span>
+                                                        <span className="text-[10px] text-gray-500">Unido: {new Date(p.created_at).toLocaleDateString()}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                {p.telefono && (
+                                                    <p className="text-[10px] text-gray-500">{p.telefono}</p>
+                                                )}
+                                                {p.bio && (
+                                                    <p className="text-[10px] text-brand-blue-light max-w-[150px] truncate">{p.bio}</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {perfiles.length === 0 && (
+                                    <div className="text-center py-12 text-gray-500 font-display">
+                                        No se encontraron registros de comunidad.
                                     </div>
                                 )}
                             </div>

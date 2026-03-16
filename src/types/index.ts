@@ -56,6 +56,7 @@ export interface Perfil {
     telefono?: string
     created_at: string
     es_admin?: boolean
+    role?: 'admin' | 'socio' | 'usuario'
     
     // Marketplace
     es_socio?: boolean
