@@ -359,19 +359,23 @@ export default function AdminPage() {
     };
 
     const cleanupRejectedVendedores = async () => {
-        const rejectedCount = solicitudesVendedores.filter(s => s.estado === 'rechazado').length;
+        // Filtramos todo lo que no esté en los estados "activos"
+        const activeStates = ['pendiente', 'aprobado'];
+        const rejectedItems = solicitudesVendedores.filter(s => !activeStates.includes(s.estado as string));
+        const rejectedCount = rejectedItems.length;
+        
         if (rejectedCount === 0) {
-            alert("No hay solicitudes de vendedores rechazadas para limpiar.");
+            alert("No hay solicitudes de vendedores rechazadas/viejas para limpiar.");
             return;
         }
 
-        if (!confirm(`¿Estás seguro de que deseas eliminar permanentemente ${rejectedCount} solicitudes de vendedores rechazadas?`)) return;
+        if (!confirm(`¿Estás seguro de que deseas eliminar permanentemente ${rejectedCount} solicitudes de vendedores (rechazadas, eliminadas o antiguas)?`)) return;
         
         try {
             const { error } = await supabase
                 .from("solicitudes_vendedores")
                 .delete()
-                .eq("estado", 'rechazado');
+                .not("estado", "in", '("pendiente","aprobado")');
             
             if (error) throw error;
             alert("Limpieza de vendedores completada.");
@@ -384,19 +388,23 @@ export default function AdminPage() {
     };
 
     const cleanupRejectedPropiedades = async () => {
-        const rejectedCount = solicitudes.filter(s => s.estado === 'descartado').length;
+        // Filtramos todo lo que no esté en los estados "activos"
+        const activeStates = ['pendiente', 'aprobado', 'contactado'];
+        const rejectedItems = solicitudes.filter(s => !activeStates.includes(s.estado as string));
+        const rejectedCount = rejectedItems.length;
+
         if (rejectedCount === 0) {
-            alert("No hay solicitudes de propiedades descartadas para limpiar.");
+            alert("No hay solicitudes de propiedades descartadas/viejas para limpiar.");
             return;
         }
 
-        if (!confirm(`¿Estás seguro de que deseas eliminar permanentemente ${rejectedCount} solicitudes de propiedades descartadas?`)) return;
+        if (!confirm(`¿Estás seguro de que deseas eliminar permanentemente ${rejectedCount} solicitudes de propiedades (descartadas o antiguas)?`)) return;
         
         try {
             const { error } = await supabase
                 .from("solicitudes_socios")
                 .delete()
-                .eq("estado", 'descartado');
+                .not("estado", "in", '("pendiente","aprobado","contactado")');
             
             if (error) throw error;
             alert("Limpieza de propiedades completada.");
