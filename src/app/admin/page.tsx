@@ -435,23 +435,33 @@ export default function AdminPage() {
                         </button>
                         <button
                             onClick={() => setActiveTab('socios')}
-                            className={`flex-1 flex items-center justify-center gap-3 py-4 px-6 rounded-2xl font-bold transition-all border ${activeTab === 'socios' ? 'bg-brand-blue border-brand-blue text-white shadow-blue-glow' : 'bg-white/5 border-white/10 text-gray-500 hover:bg-white/10 hover:text-white'}`}
+                            className={`flex-1 flex items-center justify-center gap-3 py-4 px-6 rounded-2xl font-bold transition-all border relative ${activeTab === 'socios' ? 'bg-brand-blue border-brand-blue text-white shadow-blue-glow' : 'bg-white/5 border-white/10 text-gray-500 hover:bg-white/10 hover:text-white'}`}
                         >
                             <Users className="w-5 h-5" />
                             <div className="text-left">
                                 <div className="text-xs">SOCIOS</div>
                                 <div className="text-[8px] opacity-50 font-normal uppercase tracking-tighter">Aprobaciones y Activos</div>
                             </div>
+                            {(solicitudes.filter(s => s.estado === 'pendiente').length + solicitudesVendedores.filter(s => s.estado === 'pendiente').length) > 0 && (
+                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-black flex items-center justify-center rounded-full shadow-lg border-2 border-[#020408] animate-pulse">
+                                    {solicitudes.filter(s => s.estado === 'pendiente').length + solicitudesVendedores.filter(s => s.estado === 'pendiente').length}
+                                </span>
+                            )}
                         </button>
                         <button
                             onClick={() => setActiveTab('auditoria')}
-                            className={`flex-1 flex items-center justify-center gap-3 py-4 px-6 rounded-2xl font-bold transition-all border ${activeTab === 'auditoria' ? 'bg-brand-blue border-brand-blue text-white shadow-blue-glow' : 'bg-white/5 border-white/10 text-gray-500 hover:bg-white/10 hover:text-white'}`}
+                            className={`flex-1 flex items-center justify-center gap-3 py-4 px-6 rounded-2xl font-bold transition-all border relative ${activeTab === 'auditoria' ? 'bg-brand-blue border-brand-blue text-white shadow-blue-glow' : 'bg-white/5 border-white/10 text-gray-500 hover:bg-white/10 hover:text-white'}`}
                         >
                             <ClipboardCheck className="w-5 h-5" />
                             <div className="text-left">
                                 <div className="text-xs">AUDITORÍA</div>
                                 <div className="text-[8px] opacity-50 font-normal uppercase tracking-tighter">Calidad y Moderación</div>
                             </div>
+                            {(planos.filter(p => p.estado_revision === 'en_revision').length + resenas.filter(r => !r.aprobado).length) > 0 && (
+                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-black flex items-center justify-center rounded-full shadow-lg border-2 border-[#020408] animate-pulse">
+                                    {planos.filter(p => p.estado_revision === 'en_revision').length + resenas.filter(r => !r.aprobado).length}
+                                </span>
+                            )}
                         </button>
                     </div>
 
