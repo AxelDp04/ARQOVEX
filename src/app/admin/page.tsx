@@ -333,6 +333,31 @@ export default function AdminPage() {
         }
     };
 
+    const cleanupRejectedPlanos = async () => {
+        const rejectedCount = planos.filter(p => p.estado_revision === 'rechazado').length;
+        if (rejectedCount === 0) {
+            alert("No hay inventarios rechazados para limpiar.");
+            return;
+        }
+
+        if (!confirm(`¿Estás seguro de que deseas eliminar permanentemente ${rejectedCount} inventarios rechazados? Esta acción no se puede deshacer.`)) return;
+        
+        try {
+            const { error } = await supabase
+                .from("planos")
+                .delete()
+                .eq("estado_revision", 'rechazado');
+            
+            if (error) throw error;
+            alert("Limpieza completada con éxito.");
+            fetchPlanos();
+        } catch (err: unknown) {
+            const error = err as Error;
+            console.error("Error cleaning up plans:", error.message);
+            alert("Error al limpiar inventarios: " + error.message);
+        }
+    };
+
     const checkAuthAndData = useCallback(async () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
@@ -1165,9 +1190,20 @@ export default function AdminPage() {
                                         <ClipboardCheck className="w-6 h-6 text-brand-blue" />
                                         Moderación de Contenido
                                     </h2>
-                                    <span className="badge bg-yellow-500/10 text-yellow-400 border-yellow-500/20">
-                                        {planos.filter(p => p.estado_revision === 'en_revision').length} En Revisión
-                                    </span>
+                                    <div className="flex items-center gap-4">
+                                        {planos.some(p => p.estado_revision === 'rechazado') && (
+                                            <button
+                                                onClick={cleanupRejectedPlanos}
+                                                className="btn-ghost text-xs py-1.5 px-3 text-red-400 border-red-500/20 hover:bg-red-500/10 flex items-center gap-2"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                                Limpiar Rechazados
+                                            </button>
+                                        )}
+                                        <span className="badge bg-yellow-500/10 text-yellow-400 border-yellow-500/20">
+                                            {planos.filter(p => p.estado_revision === 'en_revision').length} En Revisión
+                                        </span>
+                                    </div>
                                 </div>
                                 {planos.filter(p => p.estado_revision === 'en_revision').length === 0 ? (
                                     <div className="text-center py-12 text-gray-500">
