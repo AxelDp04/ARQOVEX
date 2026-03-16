@@ -280,7 +280,10 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
                                         <div className="relative">
                                             <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                                             <input 
-                                                type="number" name="precio" value={formData.precio} onChange={handleInputChange}
+                                                type="number" name="precio" 
+                                                value={formData.precio === 0 ? "" : formData.precio} 
+                                                onChange={handleInputChange}
+                                                placeholder="0"
                                                 className="input-field py-4 pl-12"
                                                 required
                                             />
@@ -344,19 +347,47 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                                     <div className="space-y-2">
                                         <label className="text-[10px] uppercase font-bold text-brand-blue tracking-widest block">Área (m²)</label>
-                                        <input type="number" name="metros_cuadrados" value={formData.metros_cuadrados} onChange={handleInputChange} className="input-field py-4" />
+                                        <input 
+                                            type="number" 
+                                            name="metros_cuadrados" 
+                                            value={formData.metros_cuadrados === 0 ? "" : formData.metros_cuadrados} 
+                                            onChange={handleInputChange} 
+                                            placeholder="0"
+                                            className="input-field py-4" 
+                                        />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] uppercase font-bold text-brand-blue tracking-widest block">Habitaciones</label>
-                                        <input type="number" name="habitaciones" value={formData.habitaciones} onChange={handleInputChange} className="input-field py-4" />
+                                        <input 
+                                            type="number" 
+                                            name="habitaciones" 
+                                            value={formData.habitaciones === 0 ? "" : formData.habitaciones} 
+                                            onChange={handleInputChange} 
+                                            placeholder="0"
+                                            className="input-field py-4" 
+                                        />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] uppercase font-bold text-brand-blue tracking-widest block">Baños</label>
-                                        <input type="number" name="banos" value={formData.banos} onChange={handleInputChange} className="input-field py-4" />
+                                        <input 
+                                            type="number" 
+                                            name="banos" 
+                                            value={formData.banos === 0 ? "" : formData.banos} 
+                                            onChange={handleInputChange} 
+                                            placeholder="0"
+                                            className="input-field py-4" 
+                                        />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] uppercase font-bold text-brand-blue tracking-widest block">Niveles / Pisos</label>
-                                        <input type="number" name="pisos" value={formData.pisos} onChange={handleInputChange} className="input-field py-4" />
+                                        <input 
+                                            type="number" 
+                                            name="pisos" 
+                                            value={formData.pisos === 0 ? "" : formData.pisos} 
+                                            onChange={handleInputChange} 
+                                            placeholder="0"
+                                            className="input-field py-4" 
+                                        />
                                     </div>
                                 </div>
 
