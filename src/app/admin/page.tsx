@@ -519,26 +519,26 @@ export default function AdminPage() {
                         </div>
                     </div>
 
-                    {/* Tabs Navigation */}
-                    <div className="flex gap-4 mb-10">
+                    {/* Tabs Navigation - Mobile Scroll Enhancement */}
+                    <div className="flex gap-2 md:gap-4 mb-10 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0 md:overflow-visible">
                         <button
                             onClick={() => setActiveTab('gestion')}
-                            className={`flex-1 flex items-center justify-center gap-3 py-4 px-6 rounded-2xl font-bold transition-all border ${activeTab === 'gestion' ? 'bg-brand-blue border-brand-blue text-white shadow-blue-glow' : 'bg-white/5 border-white/10 text-gray-500 hover:bg-white/10 hover:text-white'}`}
+                            className={`flex-none md:flex-1 flex items-center justify-center gap-2 md:gap-3 py-3 md:py-4 px-4 md:px-6 rounded-2xl font-bold transition-all border ${activeTab === 'gestion' ? 'bg-brand-blue border-brand-blue text-white shadow-blue-glow' : 'bg-white/5 border-white/10 text-gray-500 hover:bg-white/10 hover:text-white'}`}
                         >
                             <Images className="w-5 h-5" />
                             <div className="text-left">
-                                <div className="text-xs">GESTIÓN</div>
-                                <div className="text-[8px] opacity-50 font-normal uppercase tracking-tighter">Propiedades y Planos</div>
+                                <div className="text-[10px] md:text-xs">GESTIÓN</div>
+                                <div className="hidden md:block text-[8px] opacity-50 font-normal uppercase tracking-tighter">Propiedades y Planos</div>
                             </div>
                         </button>
                         <button
                             onClick={() => setActiveTab('socios')}
-                            className={`flex-1 flex items-center justify-center gap-3 py-4 px-6 rounded-2xl font-bold transition-all border relative ${activeTab === 'socios' ? 'bg-brand-blue border-brand-blue text-white shadow-blue-glow' : 'bg-white/5 border-white/10 text-gray-500 hover:bg-white/10 hover:text-white'}`}
+                            className={`flex-none md:flex-1 flex items-center justify-center gap-2 md:gap-3 py-3 md:py-4 px-4 md:px-6 rounded-2xl font-bold transition-all border relative ${activeTab === 'socios' ? 'bg-brand-blue border-brand-blue text-white shadow-blue-glow' : 'bg-white/5 border-white/10 text-gray-500 hover:bg-white/10 hover:text-white'}`}
                         >
                             <Users className="w-5 h-5" />
                             <div className="text-left">
-                                <div className="text-xs">SOCIOS</div>
-                                <div className="text-[8px] opacity-50 font-normal uppercase tracking-tighter">Aprobaciones y Activos</div>
+                                <div className="text-[10px] md:text-xs">SOCIOS</div>
+                                <div className="hidden md:block text-[8px] opacity-50 font-normal uppercase tracking-tighter">Aprobaciones y Activos</div>
                             </div>
                             {(solicitudes.filter(s => s.estado === 'pendiente').length + solicitudesVendedores.filter(s => s.estado === 'pendiente').length) > 0 && (
                                 <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-black flex items-center justify-center rounded-full shadow-lg border-2 border-[#020408] animate-pulse">
@@ -548,12 +548,12 @@ export default function AdminPage() {
                         </button>
                         <button
                             onClick={() => setActiveTab('auditoria')}
-                            className={`flex-1 flex items-center justify-center gap-3 py-4 px-6 rounded-2xl font-bold transition-all border relative ${activeTab === 'auditoria' ? 'bg-brand-blue border-brand-blue text-white shadow-blue-glow' : 'bg-white/5 border-white/10 text-gray-500 hover:bg-white/10 hover:text-white'}`}
+                            className={`flex-none md:flex-1 flex items-center justify-center gap-2 md:gap-3 py-3 md:py-4 px-4 md:px-6 rounded-2xl font-bold transition-all border relative ${activeTab === 'auditoria' ? 'bg-brand-blue border-brand-blue text-white shadow-blue-glow' : 'bg-white/5 border-white/10 text-gray-500 hover:bg-white/10 hover:text-white'}`}
                         >
                             <ClipboardCheck className="w-5 h-5" />
                             <div className="text-left">
-                                <div className="text-xs">AUDITORÍA</div>
-                                <div className="text-[8px] opacity-50 font-normal uppercase tracking-tighter">Calidad y Moderación</div>
+                                <div className="text-[10px] md:text-xs">AUDITORÍA</div>
+                                <div className="hidden md:block text-[8px] opacity-50 font-normal uppercase tracking-tighter">Calidad y Moderación</div>
                             </div>
                             {(planos.filter(p => p.estado_revision === 'en_revision').length + resenas.filter(r => !r.aprobado).length) > 0 && (
                                 <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-black flex items-center justify-center rounded-full shadow-lg border-2 border-[#020408] animate-pulse">
@@ -563,12 +563,12 @@ export default function AdminPage() {
                         </button>
                         <button
                             onClick={() => setActiveTab('comunidad')}
-                            className={`flex-1 flex items-center justify-center gap-3 py-4 px-6 rounded-2xl font-bold transition-all border relative ${activeTab === 'comunidad' ? 'bg-brand-blue border-brand-blue text-white shadow-blue-glow' : 'bg-white/5 border-white/10 text-gray-500 hover:bg-white/10 hover:text-white'}`}
+                            className={`flex-none md:flex-1 flex items-center justify-center gap-2 md:gap-3 py-3 md:py-4 px-4 md:px-6 rounded-2xl font-bold transition-all border relative ${activeTab === 'comunidad' ? 'bg-brand-blue border-brand-blue text-white shadow-blue-glow' : 'bg-white/5 border-white/10 text-gray-500 hover:bg-white/10 hover:text-white'}`}
                         >
                             <Users className="w-5 h-5" />
                             <div className="text-left">
-                                <div className="text-xs">COMUNIDAD</div>
-                                <div className="text-[8px] opacity-50 font-normal uppercase tracking-tighter">Usuarios y Roles</div>
+                                <div className="text-[10px] md:text-xs">COMUNIDAD</div>
+                                <div className="hidden md:block text-[8px] opacity-50 font-normal uppercase tracking-tighter">Usuarios y Roles</div>
                             </div>
                             {perfiles.length > 0 && (
                                 <span className="absolute -top-1 -right-1 w-5 h-5 bg-brand-blue text-white text-[10px] font-black flex items-center justify-center rounded-full shadow-lg border-2 border-[#020408]">

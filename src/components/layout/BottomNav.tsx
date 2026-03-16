@@ -88,8 +88,8 @@ export default function BottomNav() {
     ];
 
     return (
-        <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-md z-50 pointer-events-none">
-            <div className="bg-[#050810]/80 backdrop-blur-2xl border border-white/10 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] px-1 py-2 flex items-center justify-between h-16 pointer-events-auto">
+        <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-[380px] z-50 pointer-events-none">
+            <div className="bg-[#050810]/80 backdrop-blur-2xl border border-white/10 rounded-[1.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] px-0.5 py-1.5 flex items-center justify-between h-14 pointer-events-auto">
                 {navItems.map((item, idx) => {
                     const Icon = item.icon;
                     const isActive = item.active;
