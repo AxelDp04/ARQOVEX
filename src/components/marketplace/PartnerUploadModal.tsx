@@ -186,13 +186,13 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
                     .eq("id", plano.id);
                 if (updateError) throw updateError;
             } else {
-                const { data: newPlano, error: insertError } = await supabase
+                const { data: newPlanoData, error: insertError } = await supabase
                     .from("planos")
                     .insert([dataToSave])
-                    .select()
-                    .single();
+                    .select();
                 
                 if (insertError) throw insertError;
+                const newPlano = newPlanoData?.[0];
 
                 if (galeria.length > 0 && newPlano) {
                     const galleryPromises = galeria.map(async (file, idx) => {
