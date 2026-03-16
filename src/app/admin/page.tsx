@@ -477,7 +477,7 @@ export default function AdminPage() {
                                         <div className="flex items-center justify-between gap-3 mb-8 border-b border-white/10 pb-4">
                                             <div className="flex items-center gap-3">
                                                 <Upload className="w-6 h-6 text-brand-blue" />
-                                                <h3 className="text-xl font-bold text-white uppercase tracking-widest">Publicar Proyecto de Gala</h3>
+                                                <h3 className="text-xl font-bold text-white uppercase tracking-widest">Publicar Proyecto</h3>
                                             </div>
                                             
                                             {/* Destination Selector */}
@@ -503,7 +503,7 @@ export default function AdminPage() {
                                                 <input 
                                                     value={simplePlano.titulo}
                                                     onChange={e => setSimplePlano({...simplePlano, titulo: e.target.value})}
-                                                    className="input-field py-4" placeholder="Ej: Villa Gala Premium"
+                                                    className="input-field py-4" placeholder="Ej: Villa Moderna Premium"
                                                 />
                                             </div>
                                             <div className="space-y-2">

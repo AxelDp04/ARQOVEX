@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Mail, Loader2, ArrowRight, ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { LOGO_SRC } from "@/lib/constants";
 
 export default function OlvideContrasenaPage() {
     const [email, setEmail] = useState("");
@@ -41,7 +42,7 @@ export default function OlvideContrasenaPage() {
                 <div className="absolute top-6 left-6">
                     <Link href="/" className="flex items-center gap-2.5 group">
                         <div className="relative w-8 h-8">
-                            <Image src="/Logo.png" alt="ARQOVEX" fill sizes="100vw" className="object-contain" />
+                            <Image src={LOGO_SRC} alt="ARQOVEX" fill sizes="100vw" className="object-contain" />
                         </div>
                         <span className="font-display text-lg font-bold">
                             <span className="text-white">ARQO</span><span className="text-brand-blue">VEX</span>
@@ -130,7 +131,7 @@ export default function OlvideContrasenaPage() {
                 
                 <div className="relative z-10 p-12 text-center space-y-6">
                     <div className="relative w-32 h-32 mx-auto animate-float">
-                        <Image src="/Logo.png" alt="ARQOVEX" fill sizes="100vw" className="object-contain drop-shadow-[0_0_40px_rgba(0,102,255,0.5)]" />
+                        <Image src={LOGO_SRC} alt="ARQOVEX" fill sizes="100vw" className="object-contain drop-shadow-[0_0_40px_rgba(0,102,255,0.5)]" />
                     </div>
                     <div className="space-y-2">
                         <h2 className="font-display text-2xl font-bold text-white">Blindaje ARQOVEX</h2>

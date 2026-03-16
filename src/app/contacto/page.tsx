@@ -52,7 +52,7 @@ export default function ContactoPage() {
             if (response.ok) {
                 // 2. Abrir WhatsApp automáticamente (persistente independiente del correo)
                 const phone = "18296503337"; // Central ARQOVEX Oficial
-                const whatsappMessage = `Hola equipo de ARQOVEX, acabo de enviar una solicitud para un ${form.tipo} desde la web oficial. Mi nombre es ${form.nombre} y espero su contacto para iniciar la consultoría de gala.`;
+                const whatsappMessage = `Hola equipo de ARQOVEX, acabo de enviar una solicitud para un ${form.tipo} desde la web oficial. Mi nombre es ${form.nombre} y espero su contacto para iniciar la consultoría profesional.`;
                 const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(whatsappMessage)}`;
                 
                 // Abrir WhatsApp en nueva pestaña
@@ -134,7 +134,7 @@ export default function ContactoPage() {
                                     <div className="w-16 h-16 rounded-full bg-green-500/15 border border-green-500/25 flex items-center justify-center mx-auto">
                                         <CheckCircle className="w-8 h-8 text-green-400" />
                                     </div>
-                                    <h3 className="font-display text-2xl font-bold text-white">¡Solicitud de Gala Recibida! 🏛️</h3>
+                                    <h3 className="font-display text-2xl font-bold text-white">¡Solicitud Recibida! 🏛️</h3>
                                     <p className="text-gray-400 leading-relaxed">
                                         El equipo técnico de ARQOVEX está revisando tus detalles. Te contactarán en menos de 24h para tu consultoría de ingeniería.
                                     </p>

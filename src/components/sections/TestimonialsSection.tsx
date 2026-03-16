@@ -1,26 +1,19 @@
-
-
 export default function TestimonialsSection() {
-    return (
-        <section className="relative py-24 overflow-hidden">
-            <div className="absolute top-0 left-1/4 w-[600px] h-[400px] bg-brand-blue/5 rounded-full blur-[100px] pointer-events-none" />
-
-            <div className="container-section relative z-10">
-                {/* Header */}
-                <div className="text-center space-y-4 mb-16">
-                    <div className="badge-blue mx-auto w-fit">Visión ARQOVEX</div>
-                    <h2 className="section-title">
-                        Compromiso con la{" "}
-                        <span className="bg-gradient-to-r from-brand-blue to-brand-blue-light bg-clip-text text-transparent">
-                            excelencia arquitectónica
-                        </span>
-                    </h2>
-                    <p className="text-gray-400 max-w-2xl mx-auto">
-                        Transformamos ideas en infraestructura trascendente, combinando innovación técnica 
-                        con visión de futuro para crear espacios que inspiran y perduran.
-                    </p>
-                </div>
-            </div>
-        </section>
-    );
+  return (
+    <section className="relative py-24 md:py-32 overflow-hidden bg-[var(--page-bg)]">
+      <div className="container-section relative z-10">
+        <div className="max-w-3xl mx-auto text-center">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#4D94FF] mb-6">
+            Visión
+          </p>
+          <blockquote className="font-display text-2xl sm:text-3xl md:text-4xl font-semibold text-white leading-snug">
+            Transformamos ideas en infraestructura que perdura: innovación técnica y visión de futuro para espacios que inspiran.
+          </blockquote>
+          <p className="mt-8 text-gray-500 text-sm uppercase tracking-widest">
+            ARQOVEX · Arquitectura & Gestión Inmobiliaria
+          </p>
+        </div>
+      </div>
+    </section>
+  );
 }

@@ -34,7 +34,7 @@ export default function RootLayout({
       <head>
         <meta name="google-site-verification" content="nPeW-sxF1D-RSsaVxaLVd7h9ym_ADh8kFL7q006cFSk" />
       </head>
-      <body className="bg-brand-slate-deeper text-white antialiased font-sans">
+      <body className="bg-[var(--page-bg)] text-white antialiased font-sans">
         <ToastProvider>
           <PayPalProvider>
             {children}

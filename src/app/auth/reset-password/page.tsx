@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Lock, Eye, EyeOff, Loader2, ArrowRight, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { LOGO_SRC } from "@/lib/constants";
 
 export default function ResetPasswordPage() {
     const [password, setPassword] = useState("");
@@ -161,7 +162,7 @@ export default function ResetPasswordPage() {
                 <div className="absolute inset-0 bg-hero-pattern" />
                 <div className="relative p-12 text-center">
                     <div className="relative w-32 h-32 mx-auto animate-float">
-                        <Image src="/Logo.png" alt="ARQOVEX" fill sizes="100vw" className="object-contain" />
+                        <Image src={LOGO_SRC} alt="ARQOVEX" fill sizes="100vw" className="object-contain" />
                     </div>
                     <div className="mt-8 space-y-2">
                         <h2 className="text-2xl font-bold text-white font-display">Control Total</h2>

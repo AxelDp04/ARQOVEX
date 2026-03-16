@@ -1,96 +1,65 @@
 import {
-    Download,
-    ShieldCheck,
-    Headphones,
-    Zap,
-    Ruler,
-    Globe,
+  Download,
+  ShieldCheck,
+  Headphones,
+  Zap,
+  Ruler,
+  Globe,
 } from "lucide-react";
 
 const features = [
-    {
-        icon: Download,
-        title: "Descarga Instantánea",
-        description:
-            "Accede a tus planos inmediatamente después de la compra. Sin esperas, sin formularios adicionales.",
-    },
-    {
-        icon: ShieldCheck,
-        title: "Planos Certificados",
-        description:
-            "Infraestructura técnica curada bajo estándares de ingeniería de precisión.",
-    },
-    {
-        icon: Ruler,
-        title: "Totalmente Editables",
-        description:
-            "Recibe archivos en formato AutoCAD y PDF para que puedas adaptarlos a tus necesidades específicas.",
-    },
-    {
-        icon: Headphones,
-        title: "Soporte Especializado",
-        description:
-            "Nuestro equipo de profesionales está disponible para resolver tus consultas técnicas sobre los planos.",
-    },
-    {
-        icon: Zap,
-        title: "Proyectos Personalizados",
-        description:
-            "¿No encuentras lo que buscas? Diseñamos el plano perfecto a tu medida desde cero.",
-    },
-    {
-        icon: Globe,
-        title: "Cobertura Regional",
-        description:
-            "Operamos en República Dominicana y toda Latinoamérica. Adaptamos nuestros diseños a las normativas locales.",
-    },
+  { num: "01", icon: Download, title: "Descarga instantánea", description: "Acceso a tus planos tras la compra. Sin esperas ni trámites extra." },
+  { num: "02", icon: ShieldCheck, title: "Planos certificados", description: "Documentación técnica bajo estándares de ingeniería." },
+  { num: "03", icon: Ruler, title: "Totalmente editables", description: "AutoCAD y PDF para adaptar cada proyecto a tu necesidad." },
+  { num: "04", icon: Headphones, title: "Soporte especializado", description: "Equipo técnico para consultas sobre los planos." },
+  { num: "05", icon: Zap, title: "Proyectos a medida", description: "Diseñamos el plano que necesitas desde cero." },
+  { num: "06", icon: Globe, title: "Cobertura regional", description: "República Dominicana y Latinoamérica. Normativas locales." },
 ];
 
 export default function FeaturesSection() {
-    return (
-        <section className="relative py-24 overflow-hidden">
-            {/* Ambient glow */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-brand-blue/5 rounded-full blur-[100px] pointer-events-none" />
-
-            <div className="container-section relative z-10">
-                {/* Header */}
-                <div className="text-center space-y-4 mb-16">
-                    <div className="badge-blue mx-auto w-fit uppercase font-black tracking-widest">INGENIERÍA & VALOR</div>
-                    <h2 className="section-title">
-                        Infraestructura para la{" "}
-                        <span className="bg-gradient-to-r from-brand-blue to-brand-blue-light bg-clip-text text-transparent">
-                            Arquitectura Pro
-                        </span>
-                    </h2>
-                    <p className="section-subtitle mx-auto text-center">
-                        Fusionamos disrupción digital con precisión técnica para establecer el nuevo estándar en la distribución de diseño arquitectónico.
-                    </p>
+  return (
+    <section className="relative py-24 md:py-32 overflow-hidden bg-[var(--page-bg)]">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-[#0066FF]/[0.04] rounded-full blur-[100px] pointer-events-none" />
+      <div className="container-section relative z-10">
+        <div className="max-w-2xl mb-16">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#4D94FF] mb-3">
+            Servicios
+          </p>
+          <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight">
+            Infraestructura para la{" "}
+            <span className="bg-gradient-to-r from-[#0066FF] to-[#4D94FF] bg-clip-text text-transparent">
+              arquitectura profesional
+            </span>
+          </h2>
+          <p className="mt-4 text-gray-400 text-lg leading-relaxed">
+            Disrupción digital y precisión técnica en la distribución de diseño arquitectónico.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-white/[0.06] rounded-2xl overflow-hidden">
+          {features.map((f) => {
+            const Icon = f.icon;
+            return (
+              <div
+                key={f.num}
+                className="group bg-[#050810]/95 backdrop-blur-sm p-8 transition-all duration-300 hover:bg-white/[0.04]"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <span className="text-xs font-mono text-gray-500">{f.num}</span>
+                  <div className="w-10 h-10 rounded-lg bg-[#0066FF]/10 flex items-center justify-center group-hover:bg-[#0066FF]/20 transition-colors">
+                    <Icon className="w-5 h-5 text-[#4D94FF]" />
+                  </div>
                 </div>
-
-                {/* Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {features.map((feature, index) => {
-                        const Icon = feature.icon;
-                        return (
-                            <div
-                                key={feature.title}
-                                className="glass-card-hover p-7 group"
-                                style={{ animationDelay: `${index * 80}ms` }}
-                            >
-                                <div className="w-12 h-12 rounded-xl bg-brand-blue/10 border border-brand-blue/20 flex items-center justify-center mb-5 group-hover:bg-brand-blue/20 group-hover:border-brand-blue/40 transition-all duration-300">
-                                    <Icon className="w-6 h-6 text-brand-blue group-hover:text-brand-blue-light transition-colors" />
-                                </div>
-                                <h3 className="font-display text-lg font-semibold text-white mb-2 group-hover:text-brand-blue-light transition-colors">
-                                    {feature.title}
-                                </h3>
-                                <p className="text-sm text-gray-500 leading-relaxed">
-                                    {feature.description}
-                                </p>
-                            </div>
-                        );
-                    })}
-                </div>
-            </div>
-        </section>
-    );
+                <h3 className="font-display text-lg font-semibold text-white mb-2">
+                  {f.title}
+                </h3>
+                <p className="text-sm text-gray-500 leading-relaxed">
+                  {f.description}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
 }

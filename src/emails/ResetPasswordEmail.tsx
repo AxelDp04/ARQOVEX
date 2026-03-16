@@ -19,6 +19,8 @@ interface ResetPasswordEmailProps {
   resetPasswordLink?: string;
 }
 
+import { LOGO_FULL_URL } from "@/lib/constants";
+
 const baseUrl = "https://arqovex.vercel.app";
 
 export const ResetPasswordEmail = ({
@@ -33,7 +35,7 @@ export const ResetPasswordEmail = ({
         <Section style={logoSection}>
           <Link href={baseUrl}>
              <Img
-               src={`${baseUrl}/Logo.png`}
+               src={LOGO_FULL_URL}
                width="60"
                height="60"
                alt="ARQOVEX"

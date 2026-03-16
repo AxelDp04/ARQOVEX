@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Menu, X, ChevronDown, LogOut, LayoutDashboard, Heart, Shield } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { LOGO_SRC } from "@/lib/constants";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 const navLinks = [
@@ -81,7 +82,7 @@ export default function Header() {
     return (
         <header
             className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${isScrolled
-                ? "bg-brand-slate-deeper/90 backdrop-blur-xl border-b border-white/[0.06] shadow-[0_4px_30px_rgba(0,0,0,0.4)]"
+                ? "bg-[var(--page-bg)]/95 backdrop-blur-xl border-b border-white/[0.06] shadow-[0_4px_30px_rgba(0,0,0,0.4)]"
                 : "bg-transparent"
                 }`}
         >
@@ -91,7 +92,7 @@ export default function Header() {
                     <Link href="/" className="flex items-center gap-3 group">
                         <div className="relative w-9 h-9 md:w-11 md:h-11 transition-transform duration-300 group-hover:scale-110">
                             <Image
-                                src="/Logo.png"
+                                src={LOGO_SRC}
                                 alt="ARQOVEX Logo"
                                 fill
                                 sizes="100vw"
@@ -206,7 +207,7 @@ export default function Header() {
 
             {/* Mobile Menu */}
             {isMenuOpen && (
-                <div className="md:hidden bg-brand-slate-deeper/98 backdrop-blur-xl border-t border-white/[0.06]">
+                <div className="md:hidden bg-[var(--page-bg)]/98 backdrop-blur-xl border-t border-white/[0.06]">
                     <div className="container-section py-4 space-y-1">
                         {navLinks.map((link) => (
                             <Link

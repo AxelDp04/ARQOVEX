@@ -1,121 +1,90 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Play, ChevronDown } from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
+import { LOGO_SRC } from "@/lib/constants";
 
 export default function HeroSection() {
-    return (
-        <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
-            {/* Background */}
-            <div className="absolute inset-0 bg-brand-slate-deeper">
-                {/* Grid pattern */}
-                <div
-                    className="absolute inset-0 opacity-[0.03]"
-                    style={{
-                        backgroundImage:
-                            "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)",
-                        backgroundSize: "60px 60px",
-                    }}
+  return (
+    <section className="relative min-h-screen flex flex-col justify-center overflow-hidden bg-[var(--page-bg)]">
+      {/* Background */}
+      <div className="absolute inset-0 bg-[var(--page-bg)] overflow-hidden">
+        {/* Fine grid - deriva suave */}
+        <div
+          className="absolute inset-0 opacity-[0.02] bg-grid-drift"
+          style={{
+            backgroundImage: `linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)`,
+            backgroundSize: "80px 80px",
+          }}
+        />
+        {/* Gradient orbs - movimiento suave */}
+        <div className="absolute top-[-20%] right-[-10%] w-[900px] h-[900px] rounded-full bg-[#0066FF]/6 blur-[140px] animate-bg-float" />
+        <div className="absolute bottom-[-15%] left-[-15%] w-[700px] h-[700px] rounded-full bg-[#0044CC]/8 blur-[120px] animate-bg-float-slow" />
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#0066FF]/40 to-transparent" />
+      </div>
+
+      <div className="container-section relative z-10 pt-24 pb-20">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+          <div className="space-y-8">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-[#4D94FF]">
+              República Dominicana
+            </p>
+            <h1 className="font-display text-4xl sm:text-5xl md:text-6xl xl:text-7xl font-bold leading-[1.05] tracking-tight text-white">
+              Excelencia en diseño{" "}
+              <span className="bg-gradient-to-r from-[#0066FF] via-[#4D94FF] to-white bg-clip-text text-transparent">
+                y gestión inmobiliaria
+              </span>
+            </h1>
+            <p className="text-lg text-gray-400 max-w-md leading-relaxed">
+              Consultoría de ingeniería y arquitectura. Innovación y estándares técnicos en cada proyecto.
+            </p>
+            <div className="flex flex-wrap gap-4">
+              <Link
+                href="/catalogo"
+                className="inline-flex items-center gap-2 px-7 py-3.5 bg-gradient-to-r from-[#0066FF] to-[#0044CC] text-white font-semibold rounded-lg transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,102,255,0.4)] hover:scale-[1.02]"
+              >
+                Ver catálogo
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+              <Link
+                href="/contacto"
+                className="inline-flex items-center gap-2 px-7 py-3.5 border border-white/20 text-gray-300 font-semibold rounded-lg transition-all duration-300 hover:border-[#0066FF]/50 hover:text-white hover:bg-white/5"
+              >
+                Proyecto a medida
+              </Link>
+            </div>
+            <div className="flex items-center gap-8 pt-4 text-sm text-gray-500">
+              <span>Planos certificados</span>
+              <span className="w-1 h-1 rounded-full bg-gray-600" />
+              <span>Entrega inmediata</span>
+              <span className="w-1 h-1 rounded-full bg-gray-600" />
+              <span>Soporte técnico</span>
+            </div>
+          </div>
+
+          <div className="relative flex justify-center lg:justify-end">
+            <div className="relative w-[280px] h-[280px] sm:w-[340px] sm:h-[340px] md:w-[380px] md:h-[380px] rounded-2xl border border-white/[0.08] bg-white/[0.02] flex items-center justify-center backdrop-blur-sm">
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#0066FF]/10 to-transparent opacity-60" />
+              <div className="relative w-40 h-40 sm:w-52 sm:h-52 md:w-56 md:h-56">
+                <Image
+                  src={LOGO_SRC}
+                  alt="ARQOVEX"
+                  fill
+                  sizes="(max-width: 640px) 160px, (max-width: 768px) 208px, 224px"
+                  className="object-contain"
+                  priority
                 />
-                {/* Blue radial glows */}
-                <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-brand-blue/8 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/3" />
-                <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-brand-blue-dark/10 rounded-full blur-[100px] translate-y-1/3 -translate-x-1/3" />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-brand-blue/5 rounded-full blur-[80px]" />
+              </div>
             </div>
+          </div>
+        </div>
+      </div>
 
-            {/* Content */}
-            <div className="container-section relative z-10 pt-28 pb-16">
-                <div className="grid lg:grid-cols-2 gap-16 items-center">
-                    {/* Left: Text Content */}
-                    <div className="space-y-8 animate-slide-up">
-                        {/* Badge */}
-                        <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-brand-blue/10 border border-brand-blue/25 text-brand-blue-light text-sm font-medium uppercase tracking-[0.1em]">
-                            <span className="w-2 h-2 rounded-full bg-brand-blue animate-pulse" />
-                            Innovación Arquitectónica y Gestión Inmobiliaria
-                        </div>
-
-                        {/* Headline */}
-                        <div className="space-y-2">
-                            <h1 className="font-display text-5xl md:text-6xl xl:text-7xl font-black leading-none tracking-tight flex flex-col gap-2">
-                                <span className="text-white">Excelencia en Diseño</span>
-                                <span className="bg-gradient-to-r from-brand-blue via-brand-blue-light to-white bg-clip-text text-transparent">
-                                    y Gestión Inmobiliaria
-                                </span>
-                            </h1>
-                        </div>
-
-                        {/* Philosophy */}
-                        <p className="text-lg md:text-xl text-gray-400 leading-relaxed max-w-lg">
-                            Diseñamos la infraestructura de la civilización con eficiencia y trascendencia. 
-                            El punto de origen para la arquitectura disruptiva.
-                        </p>
-
-                        {/* CTAs */}
-                        <div className="flex flex-col sm:flex-row gap-4">
-                            <Link
-                                href="/catalogo"
-                                className="btn-primary text-base px-8 py-4 shadow-blue-glow"
-                            >
-                                Explorar Catálogo
-                                <ArrowRight className="w-5 h-5" />
-                            </Link>
-                            <Link
-                                href="/contacto"
-                                className="btn-secondary text-base px-8 py-4"
-                            >
-                                <Play className="w-4 h-4" />
-                                Proyecto Personalizado
-                            </Link>
-                        </div>
-
-                        {/* Social proof */}
-                        <div className="flex items-center gap-6 pt-2">
-                            <div className="text-center">
-                                <div className="font-display text-2xl font-bold text-white">V.2026</div>
-                                <div className="text-xs text-gray-500 mt-1 uppercase tracking-tighter">Próximo Horizonte</div>
-                            </div>
-                            <div className="w-px h-10 bg-white/10" />
-                            <div className="text-center">
-                                <div className="font-display text-2xl font-bold text-white">100%</div>
-                                <div className="text-xs text-gray-500 mt-1 uppercase tracking-tighter">Infraestructura Directa</div>
-                            </div>
-                            <div className="w-px h-10 bg-white/10" />
-                            <div className="text-center">
-                                <div className="font-display text-2xl font-bold text-white">TECH</div>
-                                <div className="text-xs text-gray-500 mt-1 uppercase tracking-tighter">Curaduría de Ingeniería</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Right: Visual */}
-                    <div className="relative flex justify-center lg:justify-end animate-fade-in animation-delay-400">
-
-
-                        {/* Main logo showcase */}
-                        <div className="relative">
-                            <div className="w-[320px] h-[320px] md:w-[420px] md:h-[420px] rounded-3xl bg-gradient-to-br from-brand-blue/10 to-brand-blue-dark/5 border border-brand-blue/15 flex items-center justify-center glow-blue">
-                                <div className="relative w-48 h-48 md:w-64 md:h-64 animate-float animation-delay-600">
-                                    <Image
-                                        src="/Logo.png"
-                                        alt="ARQOVEX"
-                                        fill
-                                        sizes="100vw"
-                                        className="object-contain drop-shadow-[0_0_40px_rgba(0,102,255,0.4)]"
-                                        priority
-                                    />
-                                </div>
-                            </div>
-                            {/* Background glow behind the card */}
-                            <div className="absolute inset-0 bg-brand-blue/20 rounded-3xl blur-3xl -z-10 scale-90" />
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Scroll indicator */}
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-gray-600 animate-bounce">
-                <span className="text-xs uppercase tracking-widest">Explorar</span>
-                <ChevronDown className="w-4 h-4" />
-            </div>
-        </section>
-    );
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 text-gray-500">
+        <span className="text-[10px] uppercase tracking-widest">Scroll</span>
+        <ChevronDown className="w-4 h-4 animate-bounce" />
+      </div>
+    </section>
+  );
 }

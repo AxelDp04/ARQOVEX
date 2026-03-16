@@ -14,7 +14,7 @@ export default function WhatsAppFloating() {
     }, []);
 
     const handleClick = () => {
-        const message = encodeURIComponent("Hola ARQOVEX, estoy navegando en su plataforma de gala y me gustaría solicitar información profesional.");
+        const message = encodeURIComponent("Hola ARQOVEX, estoy navegando en su plataforma y me gustaría solicitar información profesional.");
         window.open(`https://wa.me/${arqovexNumber}?text=${message}`, "_blank");
     };
 

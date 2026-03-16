@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { MapPin, Phone, Mail, Instagram, Facebook, Linkedin, ArrowRight } from "lucide-react";
+import { LOGO_SRC } from "@/lib/constants";
 
 const footerLinks = {
     plataforma: [
@@ -31,7 +32,7 @@ const contactInfo = [
 
 export default function Footer() {
     return (
-        <footer className="relative bg-brand-slate-deeper border-t border-white/[0.06] overflow-hidden">
+        <footer className="relative bg-[var(--page-bg)] border-t border-white/[0.06] overflow-hidden">
             {/* Radial glow */}
             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-brand-blue/5 rounded-full blur-[80px] pointer-events-none" />
 
@@ -41,7 +42,7 @@ export default function Footer() {
                     <div className="lg:col-span-1 space-y-5">
                         <Link href="/" className="flex items-center gap-3 w-fit">
                             <div className="relative w-10 h-10">
-                                <Image src="/Logo.png" alt="ARQOVEX" fill sizes="100vw" className="object-contain" />
+                                <Image src={LOGO_SRC} alt="ARQOVEX" fill sizes="100vw" className="object-contain" />
                             </div>
                             <span className="font-display text-2xl font-bold">
                                 <span className="text-white">ARQO</span>

@@ -44,6 +44,8 @@ const config: Config = {
         "slide-in-left": "slideInLeft 0.6s ease-out",
         "pulse-blue": "pulseBlue 2s ease-in-out infinite",
         "float": "float 6s ease-in-out infinite",
+        "bg-float": "bg-float 18s ease-in-out infinite",
+        "bg-float-slow": "bg-float-slow 25s ease-in-out infinite",
       },
       keyframes: {
         fadeIn: {
@@ -65,6 +67,15 @@ const config: Config = {
         float: {
           "0%, 100%": { transform: "translateY(0px)" },
           "50%": { transform: "translateY(-10px)" },
+        },
+        "bg-float": {
+          "0%, 100%": { transform: "translate(0, 0) scale(1)" },
+          "33%": { transform: "translate(3%, -2%) scale(1.02)" },
+          "66%": { transform: "translate(-2%, 2%) scale(0.98)" },
+        },
+        "bg-float-slow": {
+          "0%, 100%": { transform: "translate(0, 0)" },
+          "50%": { transform: "translate(-4%, 3%)" },
         },
       },
     },

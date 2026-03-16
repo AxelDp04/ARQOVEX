@@ -1,56 +1,36 @@
 import { ShieldCheck, Palette, Headphones, Download } from "lucide-react";
 
 const stats = [
-    {
-        icon: ShieldCheck,
-        value: "Normativa Local",
-        label: "Cumplimiento Legal",
-        description: "Diseños bajo código dominicano",
-    },
-    {
-        icon: Palette,
-        value: "Catálogo Curado",
-        label: "Exclusividad",
-        description: "Arquitectura de vanguardia",
-    },
-    {
-        icon: Headphones,
-        value: "Soporte Directo",
-        label: "Asesoría Profesional",
-        description: "Acompañamiento experto",
-    },
-    {
-        icon: Download,
-        value: "Entrega Inmediata",
-        label: "Infraestructura Digital",
-        description: "Descarga instantánea",
-    },
+  { icon: ShieldCheck, label: "Normativa local", sub: "Cumplimiento legal" },
+  { icon: Palette, label: "Catálogo curado", sub: "Arquitectura de vanguardia" },
+  { icon: Headphones, label: "Soporte directo", sub: "Asesoría profesional" },
+  { icon: Download, label: "Entrega inmediata", sub: "Descarga digital" },
 ];
 
 export default function StatsSection() {
-    return (
-        <section className="relative py-16 overflow-hidden">
-            <div className="container-section">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                    {stats.map((stat, index) => {
-                        const Icon = stat.icon;
-                        return (
-                            <div
-                                key={stat.value}
-                                className="glass-card p-6 text-center group hover:border-brand-blue/30 transition-all duration-300"
-                                style={{ animationDelay: `${index * 100}ms` }}
-                            >
-                                <div className="w-10 h-10 rounded-xl bg-brand-blue/10 flex items-center justify-center mx-auto mb-3 group-hover:bg-brand-blue/20 transition-colors">
-                                    <Icon className="w-5 h-5 text-brand-blue" />
-                                </div>
-                                <div className="font-display text-xl font-bold text-white mb-1 leading-tight">{stat.value}</div>
-                                <div className="text-sm font-semibold text-gray-400 mb-1">{stat.label}</div>
-                                <div className="text-xs text-gray-600">{stat.description}</div>
-                            </div>
-                        );
-                    })}
+  return (
+    <section className="relative py-12 border-y border-white/[0.06] bg-[var(--page-bg)]">
+      <div className="container-section">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8 md:gap-4">
+          {stats.map((stat) => {
+            const Icon = stat.icon;
+            return (
+              <div
+                key={stat.label}
+                className="flex items-center gap-4 md:flex-1 md:justify-center md:border-l md:border-white/[0.06] md:first:border-0"
+              >
+                <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-white/[0.06] flex items-center justify-center">
+                  <Icon className="w-5 h-5 text-[#4D94FF]" />
                 </div>
-            </div>
-        </section>
-    );
+                <div>
+                  <div className="font-display font-semibold text-white">{stat.label}</div>
+                  <div className="text-sm text-gray-500">{stat.sub}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
 }

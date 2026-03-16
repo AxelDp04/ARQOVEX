@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { LOGO_FULL_URL } from '@/lib/constants';
 import {
     Body,
     Container,
@@ -109,7 +110,7 @@ export const WelcomeEmailTemplate = ({ email }: { email: string }) => (
             <Container style={container}>
                 <Section style={{ textAlign: 'center' }}>
                     <Img
-                        src="https://arqovex.vercel.app/Logo.png"
+                        src={LOGO_FULL_URL}
                         width="60"
                         height="60"
                         alt="ARQOVEX"
@@ -167,7 +168,7 @@ export const PropertyNotificationEmailTemplate = ({
             <Container style={container}>
                 <Section style={{ textAlign: 'center' }}>
                     <Img
-                        src="https://arqovex.vercel.app/Logo.png"
+                        src={LOGO_FULL_URL}
                         width="60"
                         height="60"
                         alt="ARQOVEX"
@@ -232,7 +233,7 @@ export const ProyectoNotificationEmailTemplate = ({
             <Container style={container}>
                 <Section style={{ textAlign: 'center' }}>
                     <Img
-                        src="https://arqovex.vercel.app/Logo.png"
+                        src={LOGO_FULL_URL}
                         width="60"
                         height="60"
                         alt="ARQOVEX"
@@ -295,7 +296,7 @@ export const CitaNotificationEmailTemplate = ({
             <Container style={container}>
                 <Section style={{ textAlign: 'center' }}>
                     <Img
-                        src="https://arqovex.vercel.app/Logo.png"
+                        src={LOGO_FULL_URL}
                         width="60"
                         height="60"
                         alt="ARQOVEX"
