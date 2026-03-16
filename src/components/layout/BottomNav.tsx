@@ -75,7 +75,7 @@ export default function BottomNav() {
         },
         { 
             icon: isAdmin ? Shield : User, 
-            label: isAdmin ? "Admin" : (isSocio ? "Portal" : "Socio"), 
+            label: isAdmin ? "Admin" : (isSocio ? "Portal" : "Asóciate"), 
             href: isAdmin ? "/admin" : (isAuthenticated ? (isSocio ? "/dashboard?tab=vault" : "/vender-con-nosotros") : "/auth/login"),
             active: pathname === "/admin" || pathname === "/vender-con-nosotros" || (pathname === "/dashboard")
         },
