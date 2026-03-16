@@ -100,9 +100,11 @@ export default function FeaturedPlansSection() {
         ) : planos.length === 0 ? (
           <EmptyState />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="mobile-scroll-container">
             {planos.map((plano) => (
-              <PlanoCard key={plano.id} plano={plano} />
+              <div key={plano.id} className="mobile-scroll-item">
+                <PlanoCard plano={plano} />
+              </div>
             ))}
           </div>
         )}

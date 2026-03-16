@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
+const ADMIN_EMAILS = ['axelp7223@gmail.com', 'arqovex@gmail.com', 'robertoficial69@hotmail.com'];
+
 export default function BottomNav() {
     const pathname = usePathname();
     const searchParams = useSearchParams();
@@ -27,6 +29,13 @@ export default function BottomNav() {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 setIsAuthenticated(true);
+                const userEmail = user.email?.toLowerCase();
+                
+                // Hardcoded admin check
+                if (userEmail && ADMIN_EMAILS.includes(userEmail)) {
+                    setIsAdmin(true);
+                }
+
                 const { data: profile } = await supabase
                     .from('perfiles')
                     .select('es_socio, es_admin')
@@ -35,7 +44,10 @@ export default function BottomNav() {
                 
                 if (profile) {
                     setIsSocio(profile.es_socio === true);
-                    setIsAdmin(profile.es_admin === true);
+                    // Also check DB flag for admin
+                    if (profile.es_admin === true) {
+                        setIsAdmin(true);
+                    }
                 }
             }
         };
@@ -65,7 +77,7 @@ export default function BottomNav() {
             icon: isAdmin ? Shield : User, 
             label: isAdmin ? "Admin" : (isSocio ? "Portal" : "Socio"), 
             href: isAdmin ? "/admin" : (isAuthenticated ? (isSocio ? "/dashboard?tab=vault" : "/vender-con-nosotros") : "/auth/login"),
-            active: pathname === "/admin" || pathname === "/vender-con-nosotros" || (pathname === "/dashboard" && isSocio)
+            active: pathname === "/admin" || pathname === "/vender-con-nosotros" || (pathname === "/dashboard")
         },
         { 
             icon: MessageCircle, 

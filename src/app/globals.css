@@ -223,4 +223,21 @@
     0% { background-position: 0 0; }
     100% { background-position: 80px 80px; }
   }
+
+  /* Horizontal Scroll Utilities */
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+  
+  .mobile-scroll-container {
+    @apply flex overflow-x-auto gap-6 pb-8 snap-x snap-mandatory hide-scrollbar -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:pb-0;
+  }
+  
+  .mobile-scroll-item {
+    @apply flex-none w-[280px] sm:w-[320px] md:w-full snap-start;
+  }
 }
