@@ -748,6 +748,7 @@ export default function AdminPage() {
                                                     onChange={e => setSimplePlano({...simplePlano, enlace_mapa: e.target.value})}
                                                     className="input-field py-4" placeholder="https://maps.app.goo.gl/..."
                                                 />
+                                                <p className="text-[9px] text-gray-500 italic">Busca en Maps &gt; Compartir &gt; Copiar enlace</p>
                                             </div>
                                             <div className="space-y-2">
                                                 <label className="text-[10px] font-bold text-brand-blue uppercase tracking-widest flex items-center gap-2">
@@ -758,6 +759,7 @@ export default function AdminPage() {
                                                     onChange={e => setSimplePlano({...simplePlano, iframe_mapa: e.target.value})}
                                                     className="input-field py-4" placeholder="Copia el código <iframe>"
                                                 />
+                                                <p className="text-[9px] text-gray-500 italic">Maps &gt; Compartir &gt; Insertar mapa &gt; Copiar HTML</p>
                                             </div>
                                         </div>
 

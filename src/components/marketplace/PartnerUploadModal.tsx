@@ -226,14 +226,14 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
                     animate={{ opacity: 1 }} 
                     exit={{ opacity: 0 }}
                     onClick={onClose}
-                    className="fixed inset-0 bg-brand-slate-deeper/90 backdrop-blur-md" 
+                    className="fixed inset-0 bg-[#060810]/95 backdrop-blur-xl" 
                 />
                 
                 <motion.div
                     initial={{ scale: 0.95, opacity: 0, y: 20 }}
                     animate={{ scale: 1, opacity: 1, y: 0 }}
                     exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                    className="relative bg-brand-slate-deep border border-white/10 w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden"
+                    className="relative bg-brand-slate-deep border border-white/10 w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden mx-auto"
                 >
                     {/* Header */}
                     <div className="flex items-center justify-between p-6 border-b border-white/5 bg-white/[0.02]">
@@ -485,6 +485,11 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
                                                 className="input-field py-4 pl-12"
                                             />
                                         </div>
+                                        <div className="bg-brand-blue/5 p-3 rounded-lg border border-brand-blue/10">
+                                            <p className="text-[9px] text-gray-400 leading-relaxed">
+                                                <strong className="text-brand-blue">Instrucciones:</strong> Abre Google Maps &gt; Busca la ubicación &gt; Clic en <strong>Compartir</strong> &gt; <strong>Copiar enlace</strong> y pégalo arriba.
+                                            </p>
+                                        </div>
                                     </div>
 
                                     <div className="space-y-4">
@@ -500,7 +505,11 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
                                             placeholder="Copia aquí el código iframe de Google Maps" 
                                             className="input-field py-3 text-[10px] font-mono"
                                         />
-                                        <p className="text-[9px] text-gray-500 italic">Comparte ubicación &gt; Insertar mapa &gt; Copiar HTML</p>
+                                        <div className="bg-emerald-500/5 p-3 rounded-lg border border-emerald-500/10">
+                                            <p className="text-[9px] text-gray-400 leading-relaxed">
+                                                <strong className="text-emerald-400">¿Cómo obtener el código?:</strong> Clic en <strong>Compartir</strong> &gt; Selecciona la pestaña <strong>Insertar un mapa</strong> &gt; Clic en <strong>Copiar HTML</strong>.
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
 
