@@ -88,8 +88,8 @@ export default function BottomNav() {
     ];
 
     return (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[var(--page-bg)]/80 backdrop-blur-xl border-t border-white/5 pb-safe pb-2">
-            <div className="flex items-center justify-around h-16">
+        <div className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[94%] max-w-lg z-50 pointer-events-none">
+            <div className="bg-[#050810]/60 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] px-2 py-2 flex items-center justify-around h-16 pointer-events-auto">
                 {navItems.map((item, idx) => {
                     const Icon = item.icon;
                     const isActive = item.active;
@@ -101,12 +101,12 @@ export default function BottomNav() {
                                 href={item.href}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex flex-col items-center justify-center w-full gap-1 text-gray-400"
+                                className="flex flex-col items-center justify-center w-full gap-1 text-gray-400 group active:scale-95 transition-transform"
                             >
-                                <div className="p-2 rounded-xl bg-green-500/10 text-green-500">
-                                    <Icon className="w-6 h-6" />
+                                <div className="p-2 rounded-2xl bg-green-500/10 text-green-500 group-hover:bg-green-500/20 transition-colors">
+                                    <Icon className="w-5 h-5" />
                                 </div>
-                                <span className="text-[10px] font-bold uppercase tracking-tighter">{item.label}</span>
+                                <span className="text-[9px] font-bold uppercase tracking-tight">{item.label}</span>
                             </a>
                         );
                     }
@@ -115,16 +115,20 @@ export default function BottomNav() {
                         <Link
                             key={idx}
                             href={item.href}
-                            className={`flex flex-col items-center justify-center w-full gap-1 transition-all duration-300 ${
+                            className={`flex flex-col items-center justify-center w-full gap-1 transition-all duration-300 group ${
                                 isActive ? "text-brand-blue" : "text-gray-500"
-                            }`}
+                            } active:scale-95`}
                         >
-                            <div className={`p-2 rounded-xl transition-all duration-300 ${
-                                isActive ? "bg-brand-blue/10 scale-110" : "bg-transparent"
+                            <div className={`p-2 rounded-2xl transition-all duration-300 ${
+                                isActive 
+                                    ? "bg-brand-blue/15 shadow-[0_0_15px_rgba(0,102,255,0.2)]" 
+                                    : "bg-transparent group-hover:bg-white/5"
                             }`}>
-                                <Icon className="w-6 h-6" />
+                                <Icon className={`w-5 h-5 transition-transform duration-300 ${isActive ? "scale-110" : ""}`} />
                             </div>
-                            <span className="text-[10px] font-bold uppercase tracking-tighter">{item.label}</span>
+                            <span className={`text-[9px] font-bold uppercase tracking-tight transition-colors ${
+                                isActive ? "text-brand-blue" : ""
+                            }`}>{item.label}</span>
                         </Link>
                     );
                 })}

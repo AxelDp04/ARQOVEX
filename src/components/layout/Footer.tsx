@@ -36,7 +36,7 @@ export default function Footer() {
             {/* Radial glow */}
             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-brand-blue/5 rounded-full blur-[80px] pointer-events-none" />
 
-            <div className="container-section py-16 relative z-10">
+            <div className="container-section py-16 pb-32 md:pb-16 relative z-10">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
                     {/* Brand Column */}
                     <div className="lg:col-span-1 space-y-5">
