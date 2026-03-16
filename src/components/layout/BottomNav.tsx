@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { 
     LayoutGrid, 
     Building2, 
@@ -15,6 +15,8 @@ import { createClient } from "@/lib/supabase/client";
 
 export default function BottomNav() {
     const pathname = usePathname();
+    const searchParams = useSearchParams();
+    const currentSeccion = searchParams.get('seccion');
     const [isSocio, setIsSocio] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -45,13 +47,13 @@ export default function BottomNav() {
             icon: Building2, 
             label: "Inmobiliaria", 
             href: "/catalogo?seccion=inmobiliaria",
-            active: pathname === "/catalogo" && new URLSearchParams(window.location.search).get('seccion') === 'inmobiliaria'
+            active: pathname === "/catalogo" && currentSeccion === 'inmobiliaria'
         },
         { 
             icon: LayoutGrid, 
             label: "Arquitectura", 
             href: "/catalogo?seccion=planos",
-            active: pathname === "/catalogo" && new URLSearchParams(window.location.search).get('seccion') === 'planos'
+            active: pathname === "/catalogo" && currentSeccion === 'planos'
         },
         { 
             icon: Home, 

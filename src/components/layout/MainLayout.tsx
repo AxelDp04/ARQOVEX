@@ -1,3 +1,4 @@
+import React, { Suspense } from "react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import BottomNav from "@/components/layout/BottomNav";
@@ -14,7 +15,9 @@ export default function MainLayout({ children }: MainLayoutProps) {
             <main className="min-h-screen bg-[var(--page-bg)]">{children}</main>
             <Footer />
             <WhatsAppFloating />
-            <BottomNav />
+            <Suspense fallback={null}>
+                <BottomNav />
+            </Suspense>
         </>
     );
 }
