@@ -241,20 +241,20 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Tabs */}
-                    <div className="flex gap-1 mb-8 glass-card p-1 w-fit rounded-xl">
+                    <div className="flex gap-1 mb-8 glass-card p-1 w-full sm:w-fit rounded-xl overflow-x-auto scrollbar-hide flex-nowrap">
                         {tabs.map((tab) => {
                             const Icon = tab.icon;
                             return (
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
-                                    className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${activeTab === tab.id
+                                    className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 flex-none ${activeTab === tab.id
                                         ? "bg-brand-blue text-white shadow-blue-glow"
                                         : "text-gray-400 hover:text-white"
                                         }`}
                                 >
                                     <Icon className="w-4 h-4" />
-                                    {tab.label}
+                                    <span className="whitespace-nowrap">{tab.label}</span>
                                     {tab.count !== undefined && (
                                         <span className={`px-1.5 py-0.5 rounded-full text-xs ${activeTab === tab.id ? "bg-white/20" : "bg-white/10"}`}>
                                             {tab.count}
