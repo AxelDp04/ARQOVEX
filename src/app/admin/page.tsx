@@ -9,9 +9,11 @@ import {
     Building2, Bed, Bath, Car, 
     ShieldCheck, 
     ClipboardCheck, Users,
-    Plus, Upload, Save, AlertCircle, MapPin, FileText, FileUp
+    Plus, Upload, Save, AlertCircle, MapPin, FileText, FileUp,
+    Pencil, Eye, EyeOff
 } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
+import PartnerUploadModal from "@/components/marketplace/PartnerUploadModal";
 import { createClient } from "@/lib/supabase/client";
 import type { Categoria, Plano, Resena, SolicitudSocio, SolicitudVendedor, Perfil } from "@/types";
 import Image from "next/image";
@@ -47,6 +49,8 @@ export default function AdminPage() {
 
     // Simplied Upload Form State
     const [showSimpleForm, setShowSimpleForm] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [selectedPlanoForEdit, setSelectedPlanoForEdit] = useState<Plano | null>(null);
     const [uploadLoading, setUploadLoading] = useState(false);
     const [simplePlano, setSimplePlano] = useState({
         titulo: "",
@@ -58,7 +62,8 @@ export default function AdminPage() {
         parqueos: "0",
         ubicacion: "",
         seccion: "planos", 
-        categoria_id: "7776472b-8a16-4117-91a7-19cb9e94326f",
+        tipo_propiedad: "Plano Arquitectónico",
+        categoria_id: "",
         video_url: "",
         enlace_mapa: "",
         iframe_mapa: ""
@@ -66,6 +71,7 @@ export default function AdminPage() {
     const [portadaFile, setPortadaFile] = useState<File | null>(null);
     const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
     const [pdfFile, setPdfFile] = useState<File | null>(null);
+    const [videoFile, setVideoFile] = useState<File | null>(null);
     const [categorias, setCategorias] = useState<Categoria[]>([]);
 
     // Form formatting helpers
@@ -341,13 +347,32 @@ export default function AdminPage() {
                 .eq("id", planoId);
             
             if (error) throw error;
-            alert(`Proyecto ${nuevoEstado === 'publicado' ? 'aprobado y publicado' : 'rechazado'} con éxito.`);
+            alert(`Proyecto ${nuevoEstado === 'publicado' ? 'activado' : 'ocultado'} con éxito.`);
             fetchPlanos();
         } catch (err: unknown) {
             const error = err as Error;
             console.error("Error moderating project:", error.message);
             alert("Error al moderar proyecto: " + error.message);
         }
+    };
+
+    const deletePlano = async (id: string) => {
+        if (!confirm("¿Seguro que quieres eliminar este proyecto permanentemente? Esta acción no se puede deshacer.")) return;
+        try {
+            const { error } = await supabase.from("planos").delete().eq("id", id);
+            if (error) throw error;
+            alert("Proyecto eliminado con éxito.");
+            fetchPlanos();
+        } catch (err: unknown) {
+            const error = err as Error;
+            console.error("Error deleting project:", error.message);
+            alert("Error al eliminar proyecto: " + error.message);
+        }
+    };
+
+    const handleEditPlano = (plano: Plano) => {
+        setSelectedPlanoForEdit(plano);
+        setIsEditModalOpen(true);
     };
 
     const cleanupRejectedPlanos = async () => {
@@ -472,7 +497,14 @@ export default function AdminPage() {
 
     const fetchCategorias = useCallback(async () => {
         const { data } = await supabase.from("categorias").select("*");
-        if (data) setCategorias(data as Categoria[]);
+        if (data && data.length > 0) {
+            setCategorias(data as Categoria[]);
+            // Initialize simplePlano with the first category ID if empty
+            setSimplePlano(prev => ({
+                ...prev,
+                categoria_id: prev.categoria_id || data[0].id
+            }));
+        }
     }, [supabase]);
 
     useEffect(() => {
@@ -587,7 +619,7 @@ export default function AdminPage() {
 
                             {/* Upload Form - outside glass-card so mx-auto actually works */}
                             {showSimpleForm && (
-                                <div className="glass-card p-6 animate-slide-up">
+                                <div className="glass-card p-6 animate-fade-in">
                                     <div className="flex items-center justify-between gap-3 mb-8 border-b border-white/10 pb-4">
                                         <div className="flex items-center gap-3">
                                             <Upload className="w-6 h-6 text-brand-blue" />
@@ -597,13 +629,13 @@ export default function AdminPage() {
                                             {/* Destination Selector */}
                                             <div className="flex bg-white/5 p-1 rounded-xl border border-white/10">
                                                 <button 
-                                                    onClick={() => setSimplePlano({...simplePlano, seccion: 'planos'})}
+                                                    onClick={() => setSimplePlano({...simplePlano, seccion: 'planos', tipo_propiedad: 'Plano Arquitectónico'})}
                                                     className={`px-4 py-1.5 rounded-lg text-[10px] font-black tracking-widest transition-all ${simplePlano.seccion === 'planos' ? 'bg-brand-blue text-white shadow-blue-glow' : 'text-gray-500 hover:text-white'}`}
                                                 >
                                                     ARQUITECTURA
                                                 </button>
                                                 <button 
-                                                    onClick={() => setSimplePlano({...simplePlano, seccion: 'inmobiliaria'})}
+                                                    onClick={() => setSimplePlano({...simplePlano, seccion: 'inmobiliaria', tipo_propiedad: 'Casa'})}
                                                     className={`px-4 py-1.5 rounded-lg text-[10px] font-black tracking-widest transition-all ${simplePlano.seccion === 'inmobiliaria' ? 'bg-amber-500 text-slate-950 shadow-amber-500/20' : 'text-gray-500 hover:text-white'}`}
                                                 >
                                                     INMOBILIARIA
@@ -631,7 +663,7 @@ export default function AdminPage() {
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
                                             <div className="space-y-2">
                                                 <label className="text-[10px] font-bold text-brand-blue uppercase tracking-widest">Metros²</label>
                                                 <input 
@@ -648,9 +680,32 @@ export default function AdminPage() {
                                                     onChange={e => setSimplePlano({...simplePlano, categoria_id: e.target.value})}
                                                     className="input-field py-4 appearance-none"
                                                 >
+                                                    <option value="">Seleccionar...</option>
                                                     {categorias.map(cat => (
                                                         <option key={cat.id} value={cat.id}>{cat.nombre}</option>
                                                     ))}
+                                                </select>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-bold text-brand-blue uppercase tracking-widest">Tipo de Propiedad</label>
+                                                <select 
+                                                    value={simplePlano.tipo_propiedad}
+                                                    onChange={e => setSimplePlano({...simplePlano, tipo_propiedad: e.target.value})}
+                                                    className="input-field py-4 appearance-none"
+                                                >
+                                                    {simplePlano.seccion === 'planos' ? (
+                                                        <>
+                                                            <option>Plano Arquitectónico</option>
+                                                            <option>Proyecto 3D</option>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <option>Casa</option>
+                                                            <option>Apartamento</option>
+                                                            <option>Local Comercial</option>
+                                                            <option>Terreno / Solar</option>
+                                                        </>
+                                                    )}
                                                 </select>
                                             </div>
                                             <div className="space-y-2">
@@ -715,15 +770,33 @@ export default function AdminPage() {
                                             </div>
                                         </div>
 
-                                        <div className="space-y-2 mb-6">
-                                            <label className="text-[10px] font-bold text-brand-blue uppercase tracking-widest flex items-center gap-2">
-                                                <Upload className="w-3 h-3" /> Tour Virtual (Video URL)
-                                            </label>
-                                            <input 
-                                                value={simplePlano.video_url}
-                                                onChange={e => setSimplePlano({...simplePlano, video_url: e.target.value})}
-                                                className="input-field py-4" placeholder="Ej: https://www.youtube.com/watch?v=..."
-                                            />
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-bold text-brand-blue uppercase tracking-widest flex items-center gap-2">
+                                                    <Upload className="w-3 h-3" /> Tour Virtual (Video link opcional)
+                                                </label>
+                                                <input 
+                                                    value={simplePlano.video_url}
+                                                    onChange={e => setSimplePlano({...simplePlano, video_url: e.target.value})}
+                                                    className="input-field py-4" placeholder="YouTube, Instagram, etc."
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-bold text-brand-blue uppercase tracking-widest flex items-center gap-2">
+                                                    <FileUp className="w-3 h-3" /> O Subir Video (MP4/WebM)
+                                                </label>
+                                                <div className="relative group h-[58px]">
+                                                    <div className="input-field flex items-center justify-center gap-2 cursor-pointer group-hover:border-brand-blue/50 transition-all truncate px-4">
+                                                        <Upload className="w-4 h-4 text-brand-blue" />
+                                                        <span className="text-xs">{videoFile ? videoFile.name : "Seleccionar Video"}</span>
+                                                    </div>
+                                                    <input 
+                                                        type="file" accept="video/*" 
+                                                        onChange={e => setVideoFile(e.target.files?.[0] || null)}
+                                                        className="absolute inset-0 opacity-0 cursor-pointer" 
+                                                    />
+                                                </div>
+                                            </div>
                                         </div>
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -850,8 +923,8 @@ export default function AdminPage() {
                                         <div className="flex flex-col items-center gap-4 border-t border-white/10 pt-6">
                                             <button 
                                                 onClick={async () => {
-                                                    if (!simplePlano.titulo || !portadaFile || !simplePlano.precio) {
-                                                        alert("Faltan datos obligatorios (Título, Precio, Imagen de Portada)");
+                                                    if (!simplePlano.titulo || !portadaFile || !simplePlano.precio || !simplePlano.categoria_id) {
+                                                        alert("Faltan datos obligatorios (Título, Precio, Categoría, Imagen de Portada)");
                                                         return;
                                                     }
                                                     if (galleryFiles.length < 3) {
@@ -888,6 +961,20 @@ export default function AdminPage() {
                                                             if (uploadPdfError) throw uploadPdfError;
                                                         }
 
+                                                        // 2.5 Upload Video File (Optional)
+                                                        let finalVideoUrl = simplePlano.video_url;
+                                                        if (videoFile) {
+                                                            const videoExt = videoFile.name.split('.').pop();
+                                                            const videoPath = `videos/${Date.now()}-tour.${videoExt}`;
+                                                            const { error: uploadVideoError } = await supabase.storage
+                                                                .from('planos-files')
+                                                                .upload(videoPath, videoFile);
+                                                            
+                                                            if (uploadVideoError) throw uploadVideoError;
+                                                            const { data: { publicUrl: uploadedVideoUrl } } = supabase.storage.from('planos-files').getPublicUrl(videoPath);
+                                                            finalVideoUrl = uploadedVideoUrl;
+                                                        }
+
                                                         // 3. Insert into planos
                                                         const { data: insertData, error: insertError } = await supabase
                                                             .from('planos')
@@ -900,6 +987,7 @@ export default function AdminPage() {
                                                                 parqueos: Number(simplePlano.parqueos),
                                                                 vendedor_id: userId,
                                                                 imagen_url: portadaUrl,
+                                                                video_url: finalVideoUrl,
                                                                 url_archivo: pdfPath, // Private path if applicable
                                                                 estado_revision: 'publicado',
                                                                 disponible: true,
@@ -939,6 +1027,7 @@ export default function AdminPage() {
                                                             parqueos: "0",
                                                             ubicacion: "",
                                                             seccion: "planos",
+                                                            tipo_propiedad: "Plano Arquitectónico",
                                                             categoria_id: categorias[0]?.id || "",
                                                             video_url: "",
                                                             enlace_mapa: "",
@@ -1007,13 +1096,27 @@ export default function AdminPage() {
                                                     <p>Precio: ${plano.precio}</p>
                                                     <p>Metros: {plano.metros_cuadrados}m²</p>
                                                 </div>
-                                                <div className="flex gap-2 mt-3">
+                                                <div className="flex gap-2 mt-4 pt-4 border-t border-white/5">
                                                     <button
-                                                        onClick={() => updatePlanoModeracion(plano.id, 'rechazado')}
-                                                        className="btn-ghost text-sm py-2 px-4 text-red-400"
+                                                        onClick={() => handleEditPlano(plano)}
+                                                        className="btn-ghost text-xs py-2 px-3 text-brand-blue flex items-center gap-1.5 hover:bg-brand-blue/10"
                                                     >
-                                                        <Trash2 className="w-4 h-4 mr-1" />
-                                                        Ocultar
+                                                        <Pencil className="w-3.5 h-3.5" />
+                                                        Editar
+                                                    </button>
+                                                    <button
+                                                        onClick={() => updatePlanoModeracion(plano.id, plano.estado_revision === 'rechazado' ? 'publicado' : 'rechazado')}
+                                                        className={`btn-ghost text-xs py-2 px-3 flex items-center gap-1.5 ${plano.estado_revision === 'rechazado' ? 'text-green-400 hover:bg-green-400/10' : 'text-orange-400 hover:bg-orange-400/10'}`}
+                                                    >
+                                                        {plano.estado_revision === 'rechazado' ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                                                        {plano.estado_revision === 'rechazado' ? 'Mostrar' : 'Ocultar'}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => deletePlano(plano.id)}
+                                                        className="btn-ghost text-xs py-2 px-3 text-red-400 flex items-center gap-1.5 hover:bg-red-400/10"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                        Borrar
                                                     </button>
                                                 </div>
                                             </div>
@@ -1461,6 +1564,24 @@ export default function AdminPage() {
                     )}
                 </div>
             </div>
+
+            {/* Modal de Edición Reutilizado */}
+            {user && (
+                <PartnerUploadModal
+                    isOpen={isEditModalOpen}
+                    onClose={() => {
+                        setIsEditModalOpen(false);
+                        setSelectedPlanoForEdit(null);
+                    }}
+                    onSuccess={() => {
+                        fetchPlanos();
+                        setIsEditModalOpen(false);
+                        setSelectedPlanoForEdit(null);
+                    }}
+                    userId={user.id}
+                    plano={selectedPlanoForEdit}
+                />
+            )}
         </MainLayout>
     );
 }

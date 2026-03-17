@@ -1,5 +1,5 @@
 # dependencies
-/node_modules
+node_modules/
 /.pnp
 .pnp.js
 
@@ -16,6 +16,9 @@
 # misc
 .DS_Store
 *.pem
+*.log
+*.tsbuildinfo
+next-env.d.ts
 
 # debug
 npm-debug.log*
@@ -28,12 +31,18 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+.env*.local
 
 # vercel
 .vercel
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
-.vercel
+# ARQOVEX Temp & Logs
+build-log*.txt
+build_*.log
+envs*.txt
+temp_*.txt
+temp_*.tsx
+Hero_*.txt
+lint-results.json
+past_logs.txt
+*.log

@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-    X, Upload, CheckCircle, AlertCircle, Loader2, Save, 
-    Images, FileText, ArrowRight, ArrowLeft, 
-    DollarSign, Pencil, Plus, MapPin
+    Plus, Upload, Save, AlertCircle, MapPin, FileText, FileUp,
+    Pencil, CheckCircle, X, Images, ArrowLeft, ArrowRight, Loader2,
+    DollarSign
 } from "lucide-react";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
@@ -47,8 +47,10 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
         iframe_mapa: ""
     });
 
-    const [imgPrincipal, setImgPrincipal] = useState<File | null>(null);
+    const [portada, setPortada] = useState<File | null>(null);
     const [imgPrincipalPreview, setImgPrincipalPreview] = useState<string>("");
+    const [displayPrecio, setDisplayPrecio] = useState<string>("");
+    const [videoFile, setVideoFile] = useState<File | null>(null);
     const [galeria, setGaleria] = useState<File[]>([]);
     const [archivoTecnico, setArchivoTecnico] = useState<File | null>(null);
 
@@ -71,6 +73,7 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
                 iframe_mapa: plano.iframe_mapa || ""
             });
             setImgPrincipalPreview(plano.imagen_url || "");
+            setDisplayPrecio(plano.precio ? plano.precio.toLocaleString("en-US") : "");
             setStep(1);
         } else if (!plano && isOpen) {
             // Reset for new project
@@ -90,7 +93,9 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
                 iframe_mapa: ""
             });
             setImgPrincipalPreview("");
-            setImgPrincipal(null);
+            setDisplayPrecio("");
+            setPortada(null);
+            setVideoFile(null);
             setGaleria([]);
             setArchivoTecnico(null);
             setStep(1);
@@ -100,26 +105,49 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
     useEffect(() => {
         const fetchCats = async () => {
             const { data } = await supabase.from("categorias").select("*");
-            if (data) setCategorias(data);
+            if (data && data.length > 0) {
+                setCategorias(data);
+                if (!formData.categoria_id) {
+                    setFormData(prev => ({ ...prev, categoria_id: data[0].id }));
+                }
+            }
         };
         fetchCats();
-    }, [supabase]);
+    }, [supabase, formData.categoria_id]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: ["precio", "metros_cuadrados", "habitaciones", "banos", "pisos"].includes(name) 
+            [name]: ["metros_cuadrados", "habitaciones", "banos", "pisos"].includes(name) 
                 ? Number(value) 
                 : value
         }));
     };
 
+    const handlePrecioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const rawValue = e.target.value.replace(/\D/g, "");
+        if (!rawValue) {
+            setDisplayPrecio("");
+            setFormData(prev => ({...prev, precio: 0}));
+            return;
+        }
+        const num = parseInt(rawValue, 10);
+        setDisplayPrecio(num.toLocaleString("en-US"));
+        setFormData(prev => ({...prev, precio: num}));
+    };
+
     const handleImgPrincipalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files?.[0]) {
             const file = e.target.files[0];
-            setImgPrincipal(file);
+            setPortada(file);
             setImgPrincipalPreview(URL.createObjectURL(file));
+        }
+    };
+
+    const handleVideoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setVideoFile(e.target.files[0]);
         }
     };
 
@@ -140,25 +168,36 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
         setError(null);
 
         try {
-            if (!isEditMode && !imgPrincipal) throw new Error("La imagen principal es obligatoria.");
+            if (!isEditMode && !portada) throw new Error("La imagen principal es obligatoria.");
             if (!formData.categoria_id) throw new Error("Debes seleccionar una categoría.");
             if (!isEditMode && (galeria.length < 3 || galeria.length > 10)) {
                 throw new Error("Debes subir entre 3 y 10 fotos para la galería del proyecto.");
             }
 
-            let imgUrl = plano?.imagen_url || "";
+            let portadaUrl = plano?.imagen_url || "";
             let archivoPath = plano?.url_archivo || "";
 
             // 1. Upload Principal Image if changed
-            if (imgPrincipal) {
-                const imgPath = `proyectos/${userId}/${Date.now()}-${imgPrincipal.name}`;
+            if (portada) {
+                const imgPath = `proyectos/${userId}/${Date.now()}-${portada.name}`;
                 const { error: uploadImgError } = await supabase.storage
                     .from("planos-files")
-                    .upload(imgPath, imgPrincipal);
+                    .upload(imgPath, portada);
                 
                 if (uploadImgError) throw uploadImgError;
                 const { data: { publicUrl } } = supabase.storage.from("planos-files").getPublicUrl(imgPath);
-                imgUrl = publicUrl;
+                portadaUrl = publicUrl;
+            }
+
+            // 1.5 Handle Video Upload
+            let videoUrl = formData.video_url;
+            if (videoFile) {
+                const ext = videoFile.name.split('.').pop();
+                const path = `videos/${userId}/${Date.now()}.${ext}`;
+                const { error: uploadVideoError } = await supabase.storage.from('planos-files').upload(path, videoFile);
+                if (uploadVideoError) throw uploadVideoError;
+                const { data: { publicUrl } } = supabase.storage.from('planos-files').getPublicUrl(path);
+                videoUrl = publicUrl;
             }
 
             // 2. Upload Technical File if changed
@@ -171,10 +210,11 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
             // 3. Insert or Update planos
             const dataToSave = {
                 ...formData,
-                imagen_url: imgUrl,
+                imagen_url: portadaUrl,
+                video_url: videoUrl,
                 url_archivo: archivoPath,
                 vendedor_id: userId,
-                estado_revision: isEditMode ? (plano.estado_revision === 'rechazado' ? 'publicado' : plano.estado_revision) : "publicado",
+                estado_revision: isEditMode ? (plano.estado_revision === 'rechazado' ? 'publicado' : plano.estado_revision) : "en_revision",
                 destacado: plano?.destacado ?? false,
                 disponible: plano?.disponible ?? true
             };
@@ -289,9 +329,9 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
                                         <div className="relative">
                                             <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                                             <input 
-                                                type="number" name="precio" 
-                                                value={formData.precio === 0 ? "" : formData.precio} 
-                                                onChange={handleInputChange}
+                                                type="text" name="precio" 
+                                                value={displayPrecio} 
+                                                onChange={handlePrecioChange}
                                                 placeholder="0"
                                                 className="input-field py-4 pl-12"
                                                 required
@@ -343,7 +383,10 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
                                         >
                                             <option>Plano Arquitectónico</option>
                                             <option>Proyecto 3D</option>
-                                            <option>Inmobiliaria (Casa/Villa)</option>
+                                            <option>Casa</option>
+                                            <option>Apartamento</option>
+                                            <option>Local Comercial</option>
+                                            <option>Terreno / Solar</option>
                                         </select>
                                     </div>
                                 </div>
@@ -449,23 +492,47 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
                                     )}
                                 </div>
 
-                                {/* Video URL Section */}
+                                {/* Video Section */}
                                 <div className="space-y-4 pt-4 border-t border-white/5">
-                                    <label className="text-[10px] uppercase font-bold text-brand-blue tracking-widest block flex items-center gap-2">
-                                        Tour Virtual (Video URL)
-                                        <span className="text-[8px] text-gray-500 font-normal normal-case">(YouTube, Instagram, MP4...)</span>
-                                    </label>
-                                    <div className="relative">
-                                        <Upload className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                                        <input 
-                                            name="video_url" 
-                                            value={formData.video_url} 
-                                            onChange={handleInputChange}
-                                            placeholder="Enlace del video (ej: https://www.youtube.com/watch?v=...)" 
-                                            className="input-field py-4 pl-12"
-                                        />
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] uppercase font-bold text-brand-blue tracking-widest block flex items-center gap-2">
+                                                Tour Virtual (Link)
+                                                <span className="text-[8px] text-gray-500 font-normal normal-case">(YouTube/IG)</span>
+                                            </label>
+                                            <div className="relative">
+                                                <Upload className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                                                <input 
+                                                    name="video_url" 
+                                                    value={formData.video_url} 
+                                                    onChange={handleInputChange}
+                                                    placeholder="URL del video..." 
+                                                    className="input-field py-4 pl-12"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] uppercase font-bold text-brand-blue tracking-widest block flex items-center gap-2">
+                                                O Subir Archivo
+                                                <span className="text-[8px] text-gray-500 font-normal normal-case">(MP4/WebM)</span>
+                                            </label>
+                                            <div className="relative group h-[58px]">
+                                                <div className="input-field h-full flex items-center justify-center gap-2 border-dashed border-white/20 hover:border-brand-blue/50 transition-all cursor-pointer bg-white/[0.01] px-4">
+                                                    <FileUp className="w-4 h-4 text-gray-500" />
+                                                    <span className="text-[10px] font-bold text-gray-400 truncate">
+                                                        {videoFile ? videoFile.name : "Seleccionar Video"}
+                                                    </span>
+                                                </div>
+                                                <input 
+                                                    type="file" 
+                                                    accept="video/*" 
+                                                    onChange={handleVideoFileChange} 
+                                                    className="absolute inset-0 opacity-0 cursor-pointer" 
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
-                                    <p className="text-[9px] text-gray-500 italic">El video aparecerá automáticamente en la galería de detalles de la propiedad.</p>
+                                    <p className="text-[9px] text-gray-500 italic">Puedes subir un video directamente o pegar un link de YouTube/Instagram.</p>
                                 </div>
 
                                 {/* Map Section */}
@@ -545,9 +612,15 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
                                         <CheckCircle className="w-8 h-8 text-white" />
                                     </div>
                                     <div>
-                                        <h3 className="text-2xl font-bold text-white">Todo listo para publicar</h3>
+                                        <h3 className="text-2xl font-bold text-white">Todo listo para enviar</h3>
                                         <p className="text-white/70 text-sm max-w-sm mx-auto">
-                                            Al ser Socio Certificado, tu proyecto se publicará automáticamente e instantáneamente en el catálogo oficial de ARQOVEX.
+                                            Tu proyecto será enviado a nuestro equipo técnico para revisión. Una vez aprobado, se publicará en el catálogo oficial de ARQOVEX.
+                                        </p>
+                                    </div>
+                                    <div className="mt-4 p-4 rounded-xl bg-orange-500/10 border border-orange-500/20 w-full max-w-md">
+                                        <h4 className="text-[11px] font-bold text-orange-400 uppercase tracking-widest mb-1">Aviso Comercial: Comisión del 15%</h4>
+                                        <p className="text-xs text-white/80 leading-relaxed">
+                                            Al publicar este proyecto en ARQOVEX, aceptas que la plataforma retendrá el <strong className="text-white">15%</strong> de la tarifa de venta final por concepto de infraestructura tecnológica, soporte y procesamiento de pagos seguros a través de PayPal. El <strong className="text-white">85%</strong> restante será transferido directamente a tu cuenta.
                                         </p>
                                     </div>
                                 </div>
@@ -557,7 +630,7 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
                                         <h4 className="text-[10px] uppercase font-bold text-brand-blue mb-4">Resumen Técnico</h4>
                                         <ul className="space-y-3">
                                             <li className="flex justify-between text-sm"><span className="text-gray-500">PROYECTO:</span> <span className="text-white font-medium">{formData.titulo}</span></li>
-                                            <li className="flex justify-between text-sm"><span className="text-gray-500">PRECIO:</span> <span className="text-brand-blue-light font-bold">US$ {formData.precio}</span></li>
+                                            <li className="flex justify-between text-sm"><span className="text-gray-500">PRECIO:</span> <span className="text-brand-blue-light font-bold">US$ {formData.precio.toLocaleString("en-US")}</span></li>
                                             <li className="flex justify-between text-sm"><span className="text-gray-500">SUPERFICIE:</span> <span className="text-white font-medium">{formData.metros_cuadrados}m²</span></li>
                                         </ul>
                                     </div>

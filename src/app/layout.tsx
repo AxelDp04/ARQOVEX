@@ -8,13 +8,16 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
 
 export const metadata: Metadata = {
+  applicationName: "ARQOVEX",
   title: {
-    default: "ARQOVEX | Real Estate",
+    default: "ARQOVEX",
     template: "%s | ARQOVEX",
   },
   description: "Consultoría de Ingeniería y Arquitectura en la República Dominicana. Innovación y excelencia en proyectos inmobiliarios.",
   openGraph: {
     siteName: "ARQOVEX",
+    title: "ARQOVEX",
+    description: "Consultoría de Ingeniería y Arquitectura en la República Dominicana.",
     type: "website",
     locale: "es_DO",
   },

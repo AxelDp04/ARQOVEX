@@ -318,7 +318,12 @@ export default function PlanoDetailPage() {
                                     <div className="relative aspect-video w-full rounded-2xl overflow-hidden glass-card border-brand-blue/20 shadow-blue-glow-sm">
                                         {plano.video_url.includes('youtube.com') || plano.video_url.includes('youtu.be') ? (
                                             <iframe 
-                                                src={`https://www.youtube.com/embed/${plano.video_url.includes('v=') ? plano.video_url.split('v=')[1].split('&')[0] : plano.video_url.split('/').pop()}`}
+                                                src={`https://www.youtube.com/embed/${(() => {
+                                                    const url = plano.video_url;
+                                                    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=|shorts\/)([^#\&\?]*).*/;
+                                                    const match = url.match(regExp);
+                                                    return (match && match[2].length === 11) ? match[2] : url.split('/').pop();
+                                                })()}`}
                                                 className="absolute inset-0 w-full h-full border-0"
                                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                                 allowFullScreen
@@ -333,12 +338,16 @@ export default function PlanoDetailPage() {
                                             <video 
                                                 src={plano.video_url} 
                                                 controls 
+                                                playsInline
+                                                preload="metadata"
                                                 className="absolute inset-0 w-full h-full object-cover"
                                                 poster={plano.imagen_url}
-                                            />
+                                            >
+                                                Tu navegador no soporta la reproducción de video.
+                                            </video>
                                         )}
                                     </div>
-                                    <p className="text-[10px] text-gray-500 italic text-center">Video proporcionado por el anunciante / Propietario</p>
+                                    <p className="text-[10px] text-gray-500 italic text-center">Video de alta definición de la propiedad</p>
                                 </div>
                             )}
 
@@ -350,7 +359,7 @@ export default function PlanoDetailPage() {
                                         Ubicación Interactiva
                                     </h2>
                                     <div 
-                                        className="w-full rounded-2xl overflow-hidden glass-card border-brand-blue/20 shadow-blue-glow-sm aspect-video mb-4"
+                                        className="w-full rounded-2xl overflow-hidden glass-card border-brand-blue/20 shadow-blue-glow-sm aspect-video mb-4 [&>iframe]:w-full [&>iframe]:h-full"
                                         dangerouslySetInnerHTML={{ __html: plano.iframe_mapa.includes('<iframe') ? plano.iframe_mapa : `<iframe src="${plano.iframe_mapa}" class="w-full h-full border-0"></iframe>` }}
                                     />
                                     <p className="text-[10px] text-gray-500 italic text-center">Mapa interactivo preciso de la zona</p>
@@ -507,6 +516,7 @@ export default function PlanoDetailPage() {
                                 </div>
 
                                 {/* Dynamic Action */}
+                                <div id="comprar" className="scroll-mt-28">
                                 {isPlano ? (
                                     isAcquired ? (
                                         <div className="space-y-4">
@@ -612,6 +622,7 @@ export default function PlanoDetailPage() {
                                         </div>
                                     </div>
                                 )}
+                                </div>
 
                                 {/* Mortgage Calculator Section */}
                                 <CalculadoraHipotecaria precioProperty={plano.precio} />

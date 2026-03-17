@@ -17,6 +17,7 @@ export default function HeroSection() {
         .from("planos")
         .select("galeria:galeria_propiedades(imagen_url)")
         .eq("destacado", true)
+        .eq("estado_revision", "publicado")
         .limit(1)
         .single();
       

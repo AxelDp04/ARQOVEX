@@ -49,20 +49,6 @@ export default function PayPalButton({ planoId, monto, userId, onSuccess }: PayP
                                 description: `Plano Arquitectónico - ID: ${planoId}`,
                             },
                         ],
-                        payer: {
-                            name: {
-                                given_name: "AXEL",
-                                surname: "PEREZ"
-                            },
-                            email_address: "sb-buyer@business.example.com",
-                            address: {
-                                address_line_1: "123 Test St",
-                                admin_area_2: "San Jose",
-                                admin_area_1: "CA",
-                                postal_code: "95131",
-                                country_code: "US"
-                            }
-                        },
                         application_context: {
                             shipping_preference: "NO_SHIPPING",
                             user_action: "PAY_NOW",

@@ -19,6 +19,7 @@ export default function FeaturedPlansSection() {
         .select("*, categoria:categorias(*), galeria:galeria_propiedades(imagen_url)")
         .eq("destacado", true)
         .eq("disponible", true)
+        .eq("estado_revision", "publicado")
         .limit(3)
         .order("created_at", { ascending: false });
 

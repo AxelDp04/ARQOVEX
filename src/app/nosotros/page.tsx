@@ -97,7 +97,7 @@ export default function SobreNosotrosPage() {
                                         <div className="w-full h-full bg-brand-slate-deep flex items-center justify-center rounded-2xl overflow-hidden relative">
                                             {/* Foto de Perfil SDE */}
                                             <Image
-                                                src="/axel-perfil.png"
+                                                src="/axel-v2.png"
                                                 alt="Axel Perez - Software Engineer"
                                                 fill
                                                 className="object-cover hover:scale-110 transition-transform duration-500"

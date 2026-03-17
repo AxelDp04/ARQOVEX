@@ -19,6 +19,7 @@ import {
     CreditCard
 } from "lucide-react";
 import type { Plano } from "@/types";
+import QuickBuyModal from "@/components/ui/QuickBuyModal";
 
 interface PlanoCardProps {
     plano: Plano;
@@ -37,6 +38,7 @@ export default function PlanoCard({ plano, onToggleFavorito, isFavorito = false 
     const [activeIndex, setActiveIndex] = useState(0);
     const [direction, setDirection] = useState(0);
     const [isImageLoading, setIsImageLoading] = useState(true);
+    const [showBuyModal, setShowBuyModal] = useState(false);
 
     const images = useMemo(() => {
         const galleryImgs = plano.galeria?.map(g => g.imagen_url) || [];
@@ -75,6 +77,7 @@ export default function PlanoCard({ plano, onToggleFavorito, isFavorito = false 
     }, [images.length]);
 
     return (
+        <>
         <article className="group glass-card-hover overflow-hidden flex flex-col h-full relative">
             {/* Image Carousel Container */}
             <div className="relative h-56 overflow-hidden bg-[#0a0a0f]">
@@ -296,8 +299,7 @@ export default function PlanoCard({ plano, onToggleFavorito, isFavorito = false 
                             <button
                                 onClick={(e) => {
                                     e.preventDefault();
-                                    // Placeholder for payment flow
-                                    window.location.href = `/plano/${plano.id}?buy=true`;
+                                    setShowBuyModal(true);
                                 }}
                                 className="flex items-center gap-2 text-xs font-black uppercase tracking-tighter bg-brand-gradient text-white px-4 py-2 rounded-lg shadow-blue-glow hover:scale-105 transition-all"
                             >
@@ -317,5 +319,13 @@ export default function PlanoCard({ plano, onToggleFavorito, isFavorito = false 
                 </div>
             </div>
         </article>
+
+        {/* Quick Buy Modal */}
+        <QuickBuyModal
+            plano={plano}
+            isOpen={showBuyModal}
+            onClose={() => setShowBuyModal(false)}
+        />
+    </>
     );
 }
