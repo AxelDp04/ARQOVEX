@@ -7,36 +7,8 @@ import { createClient } from "@/lib/supabase/client";
 import PlanoCard from "@/components/ui/PlanoCard";
 import type { Plano } from "@/types";
 
-export default function FeaturedPlansSection() {
-  const [planos, setPlanos] = useState<Plano[]>([]);
-  const [loading, setLoading] = useState(true);
-  const supabase = createClient();
-
-  useEffect(() => {
-    const fetchPlanos = async () => {
-      const { data, error } = await supabase
-        .from("planos")
-        .select(`
-          *,
-          categoria:categorias(*),
-          galeria:galeria_propiedades!fk_galeria_plano(imagen_url)
-        `)
-        .eq("destacado", true)
-        .eq("disponible", true)
-        .eq("estado_revision", "publicado")
-        .limit(3)
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("Error fetching planos:", error);
-      } else {
-        setPlanos((data as Plano[]) || []);
-      }
-      setLoading(false);
-    };
-
-    fetchPlanos();
-  }, [supabase]);
+export default function FeaturedPlansSection({ initialPlanos = [] }: { initialPlanos?: Plano[] }) {
+  const planos = initialPlanos;
 
   const EmptyState = () => (
     <div className="text-center py-20">
@@ -98,11 +70,7 @@ export default function FeaturedPlansSection() {
           )}
         </div>
 
-        {loading ? (
-          <div className="flex items-center justify-center py-24">
-            <Loader2 className="w-8 h-8 text-[#0066FF] animate-spin" />
-          </div>
-        ) : planos.length === 0 ? (
+        {planos.length === 0 ? (
           <EmptyState />
         ) : (
           <div className="mobile-scroll-container">
