@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import {
     Heart, Download, Check, ArrowLeft, Star,
-    Maximize2, BedDouble, Bath, Layers, FileCheck, ShieldCheck, Ruler, Loader2, ChevronLeft, ChevronRight, Car, MessageCircle, X, ChevronDown, User, MapPin
+    Maximize2, BedDouble, Bath, Layers, FileCheck, ShieldCheck, Ruler, Loader2, ChevronLeft, ChevronRight, Car, MessageCircle, X, ChevronDown, User, MapPin, Eye
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import MainLayout from "@/components/layout/MainLayout";
@@ -145,7 +145,37 @@ export default function PlanoDetailPage() {
             setLoading(false);
         };
 
-        if (id) fetchDetail();
+        if (id) {
+            fetchDetail();
+
+            // Incrementar vistas al entrar
+            supabase.rpc('incrementar_vistas', { target_plano_id: id })
+                .then(({ error }) => {
+                    if (error) console.error("Error incrementing vistas:", error);
+                });
+
+            // Suscripción Realtime para vistas
+            const channel = supabase
+                .channel(`plano-vistas-${id}`)
+                .on(
+                    'postgres_changes',
+                    {
+                        event: 'UPDATE',
+                        schema: 'public',
+                        table: 'planos',
+                        filter: `id=eq.${id}`
+                    },
+                    (payload) => {
+                        const newVistas = payload.new.total_vistas;
+                        setPlano(prev => prev ? { ...prev, total_vistas: newVistas } : null);
+                    }
+                )
+                .subscribe();
+
+            return () => {
+                supabase.removeChannel(channel);
+            };
+        }
     }, [id, supabase]);
 
     const toggleFavorito = async () => {
@@ -251,7 +281,14 @@ export default function PlanoDetailPage() {
                             {/* Main Image Carousel */}
                             <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden glass-card group cursor-zoom-in" onClick={() => openLightbox(activeImgIndex)}>
                                 {galeriaUrls.length > 0 && galeriaUrls[activeImgIndex] ? (
-                                    <Image src={galeriaUrls[activeImgIndex]} alt={plano.titulo} fill className="object-cover transition-opacity duration-500" />
+                                    <Image 
+                                        src={galeriaUrls[activeImgIndex]} 
+                                        alt={plano.titulo} 
+                                        fill 
+                                        className="object-cover transition-opacity duration-500" 
+                                        quality={100}
+                                        priority
+                                    />
                                 ) : (
                                     <div className="w-full h-full bg-metal-gradient flex items-center justify-center">
                                         <Layers className="w-16 h-16 text-gray-600" />
@@ -274,6 +311,11 @@ export default function PlanoDetailPage() {
                                 >
                                     <Heart className={`w-5 h-5 transition-all ${isFavorito ? "fill-current scale-110" : "scale-100"}`} />
                                 </button>
+
+                                <div className="absolute bottom-4 left-4 px-3 py-1.5 rounded-xl bg-black/60 border border-white/10 backdrop-blur-md text-white text-[11px] font-bold flex items-center gap-2 z-10 hover:bg-black/80 transition-all group/vistas shadow-lg">
+                                    <Eye className="w-4 h-4 text-brand-blue group-hover/vistas:scale-110 transition-transform" />
+                                    <span>{plano.total_vistas || 0} vistas</span>
+                                </div>
 
                                 {/* Controls */}
                                 {galeriaUrls.length > 1 && (

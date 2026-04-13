@@ -41,6 +41,7 @@ export interface Plano {
     video_url?: string
     enlace_mapa?: string
     iframe_mapa?: string
+    total_vistas?: number
 }
 
 export interface Categoria {
@@ -69,7 +70,15 @@ export interface Perfil {
         facebook?: string
         linkedin?: string
     }
-    telefono_profesional?: string
+    telefono_profesional?: string;
+    
+    // Payouts
+    metodo_pago?: 'paypal' | 'transferencia_local';
+    paypal_email?: string;
+    banco_nombre?: string;
+    banco_numero_cuenta?: string;
+    cedula_identidad?: string;
+    categoria_socio?: 'arquitectura' | 'inmobiliaria' | 'mixto';
 }
 
 export interface Favorito {
@@ -147,7 +156,8 @@ export interface SolicitudVendedor {
         facebook?: string
         linkedin?: string
     }
-    estado: 'pendiente' | 'aprobado' | 'rechazado'
+    estado: 'pendiente' | 'aprobado' | 'rechazado' | 'eliminado'
+    categoria_socio?: 'arquitectura' | 'inmobiliaria' | 'mixto'
     created_at: string
 }
 
@@ -160,4 +170,35 @@ export interface Cita {
     mensaje: string
     url_propiedad: string
     created_at: string
+}
+
+export interface Payout {
+    id: string
+    venta_id: string
+    vendedor_id: string
+    monto_payout: number
+    estado: 'pendiente' | 'procesando' | 'completado' | 'error'
+    metodo_usado: {
+        metodo: 'paypal' | 'transferencia_local'
+        paypal?: string
+        banco?: string
+        cuenta?: string
+        cedula?: string
+    }
+    created_at: string
+    vendedor?: Perfil
+    venta?: {
+        monto_usd: number
+        created_at: string
+        usuario?: {
+            nombre_completo: string
+            email: string
+        }
+        plano: {
+            titulo: string
+        }
+    }
+    comprobante_url?: string
+    notas_admin?: string
+    fecha_pago_realizada?: string
 }

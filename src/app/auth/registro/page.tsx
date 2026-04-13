@@ -111,7 +111,7 @@ export default function RegistroPage() {
                     </div>
                     <div className="space-y-2">
                         <h2 className="font-display text-2xl font-bold text-white">Únete a ARQOVEX</h2>
-                        <p className="text-brand-blue font-medium">Acceso a 200+ planos profesionales</p>
+                        <p className="text-brand-blue font-medium">Diseños y propiedades exclusivas</p>
                     </div>
                     <ul className="text-sm text-gray-500 space-y-2 text-left max-w-xs mx-auto">
                         {["Catálogo completo de planos", "Descarga inmediata", "Soporte técnico especializado", "Proyectos personalizados"].map((item) => (

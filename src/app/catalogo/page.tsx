@@ -99,7 +99,7 @@ function CatalogoContent() {
             try {
                 const { data, error } = await supabase
                     .from("planos")
-                    .select("*, categoria:categorias(*), galeria:galeria_propiedades(imagen_url)")
+                    .select("*, categoria:categorias(*), galeria:galeria_propiedades!fk_galeria_plano(imagen_url)")
                     .eq("disponible", true)
                     .eq("estado_revision", "publicado")
                     .order("created_at", { ascending: false });

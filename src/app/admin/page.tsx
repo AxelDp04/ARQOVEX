@@ -10,16 +10,17 @@ import {
     ShieldCheck, 
     ClipboardCheck, Users,
     Plus, Upload, Save, AlertCircle, MapPin, FileText, FileUp,
-    Pencil, Eye, EyeOff
+    Pencil, Eye, EyeOff,
+    DollarSign, CheckCircle2, Clock, LayoutDashboard, ExternalLink
 } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
 import PartnerUploadModal from "@/components/marketplace/PartnerUploadModal";
 import { createClient } from "@/lib/supabase/client";
-import type { Categoria, Plano, Resena, SolicitudSocio, SolicitudVendedor, Perfil } from "@/types";
+import type { Categoria, Plano, Resena, SolicitudSocio, SolicitudVendedor, Perfil, Payout } from "@/types";
 import Image from "next/image";
 import type { User } from "@supabase/supabase-js";
 
-type Tab = "gestion" | "socios" | "auditoria" | "comunidad";
+type Tab = 'dashboard' | 'planos' | 'socios' | 'auditoria' | 'comunidad' | 'pagos';
 
 export default function AdminPage() {
     const router = useRouter();
@@ -35,10 +36,21 @@ export default function AdminPage() {
     const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
     // Data state
-    const [activeTab, setActiveTab] = useState<Tab>("gestion");
+    const [activeTab, setActiveTab] = useState<Tab>("planos");
     const [planos, setPlanos] = useState<Plano[]>([]);
     const [resenas, setResenas] = useState<Resena[]>([]);
     const [reviewLoading, setReviewLoading] = useState(false);
+
+    // Estado para Evidencia de Pago
+    const [isEvidenceModalOpen, setIsEvidenceModalOpen] = useState(false);
+    const [payoutForEvidence, setPayoutForEvidence] = useState<Payout | null>(null);
+    const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
+    const [evidenceNotes, setEvidenceNotes] = useState("");
+    const [isUploadingEvidence, setIsUploadingEvidence] = useState(false);
+    const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
+    const [activeVoucher, setActiveVoucher] = useState<Payout | null>(null);
+    const [payouts, setPayouts] = useState<Payout[]>([]);
+    const [payoutLoading, setPayoutLoading] = useState(false);
     const [solicitudes, setSolicitudes] = useState<SolicitudSocio[]>([]);
     const [solicitudLoading, setSolicitudLoading] = useState(false);
     const [solicitudesVendedores, setSolicitudesVendedores] = useState<SolicitudVendedor[]>([]);
@@ -106,6 +118,64 @@ export default function AdminPage() {
             setResenas(data as Resena[]);
         }
     }, [supabase]);
+
+    const fetchPayouts = useCallback(async () => {
+        setPayoutLoading(true);
+        try {
+            // Intento 1: Con toda la información unida (Venta, Plano, Comprador)
+            const { data, error } = await supabase
+                .from('payouts_queue')
+                .select('*, vendedor:perfiles(*), venta:ventas_planos!fk_payout_to_venta(*, plano:planos(titulo), usuario:perfiles(nombre_completo, email))')
+                .order('created_at', { ascending: false });
+            
+            if (error) {
+                // Fallback: Solo pagos y vendedores (sin datos de venta detallados)
+                const { data: fallbackData, error: fallbackError } = await supabase
+                    .from('payouts_queue')
+                    .select('*, vendedor:perfiles(*)')
+                    .order('created_at', { ascending: false });
+                
+                if (fallbackError) throw fallbackError;
+                setPayouts(fallbackData as Payout[]);
+            } else if (data) {
+                setPayouts(data as Payout[]);
+            }
+        } catch (err: unknown) {
+            const error = err as Error;
+            console.error("Supabase Error [AdminFetchPayouts]:", error.message);
+        } finally {
+            setPayoutLoading(false);
+        }
+    }, [supabase]);
+
+
+    const updateSocioCategoria = async (socio: SolicitudVendedor, nuevaCategoria: 'arquitectura' | 'inmobiliaria' | 'mixto') => {
+        setVendedorLoading(true);
+        try {
+            // Update the profile
+            const { error: profileError } = await supabase
+                .from('perfiles')
+                .update({ categoria_socio: nuevaCategoria })
+                .eq('id', socio.usuario_id);
+
+            if (profileError) throw profileError;
+
+            // Update the application record
+            const { error: solicitudError } = await supabase
+                .from('solicitudes_vendedores')
+                .update({ categoria_socio: nuevaCategoria })
+                .eq('id', socio.id);
+
+            if (solicitudError) throw solicitudError;
+
+            fetchSociosAprobados();
+        } catch (err: unknown) {
+            const error = err as Error;
+            alert("Error al actualizar categoría: " + error.message);
+        } finally {
+            setVendedorLoading(false);
+        }
+    };
 
     const fetchSolicitudes = useCallback(async () => {
         const { data, error } = await supabase
@@ -192,14 +262,19 @@ export default function AdminPage() {
         setSolicitudLoading(false);
     };
 
-    const approveSocio = async (solicitud: SolicitudVendedor) => {
+    const approveSocio = async (solicitud: SolicitudVendedor, categoriaForzada?: 'arquitectura' | 'inmobiliaria' | 'mixto') => {
         setVendedorLoading(true);
         setConfirmAction(null);
+        const finalCategoria = categoriaForzada || solicitud.categoria_socio || 'arquitectura';
+        
         try {
-            // Step 1: Update the application state to 'aprobado'
+            // Step 1: Update the application state to 'aprobado' AND potentially its category
             const { error: estadoError } = await supabase
                 .from("solicitudes_vendedores")
-                .update({ estado: 'aprobado' })
+                .update({ 
+                    estado: 'aprobado',
+                    categoria_socio: finalCategoria
+                })
                 .eq("id", solicitud.id);
             
             if (estadoError) throw estadoError;
@@ -208,7 +283,10 @@ export default function AdminPage() {
             if (solicitud.usuario_id) {
                 const { error: perfilError } = await supabase
                     .from("perfiles")
-                    .update({ es_socio: true })
+                    .update({ 
+                        es_socio: true,
+                        categoria_socio: finalCategoria
+                    })
                     .eq("id", solicitud.usuario_id);
                 
                 if (perfilError) {
@@ -343,7 +421,10 @@ export default function AdminPage() {
         try {
             const { error } = await supabase
                 .from("planos")
-                .update({ estado_revision: nuevoEstado })
+                .update({ 
+                    estado_revision: nuevoEstado,
+                    disponible: nuevoEstado === 'publicado' ? true : undefined 
+                })
                 .eq("id", planoId);
             
             if (error) throw error;
@@ -353,6 +434,23 @@ export default function AdminPage() {
             const error = err as Error;
             console.error("Error moderating project:", error.message);
             alert("Error al moderar proyecto: " + error.message);
+        }
+    };
+
+    const toggleFeaturedPlano = async (planoId: string, currentStatus: boolean) => {
+        try {
+            const { error } = await supabase
+                .from("planos")
+                .update({ destacado: !currentStatus })
+                .eq("id", planoId);
+            
+            if (error) throw error;
+            alert(`Proyecto ${!currentStatus ? 'destacado' : 'quitado de destacados'} con éxito.`);
+            fetchPlanos();
+        } catch (err: unknown) {
+            const error = err as Error;
+            console.error("Error toggling featured status:", error.message);
+            alert("Error al actualizar estado destacado: " + error.message);
         }
     };
 
@@ -458,6 +556,78 @@ export default function AdminPage() {
         }
     };
 
+    const cleanupCompletedPayouts = async () => {
+        const completedCount = payouts.filter(p => p.estado === 'completado').length;
+        if (completedCount === 0) {
+            alert("No hay pagos completados para limpiar.");
+            return;
+        }
+
+        if (!confirm(`¿Estás seguro de que deseas eliminar permanentemente ${completedCount} registros de pagos ya completados?`)) return;
+        
+        setPayoutLoading(true);
+        try {
+            const { error } = await supabase
+                .from("payouts_queue")
+                .delete()
+                .eq("estado", 'completado');
+            
+            if (error) throw error;
+            alert("Limpieza de pagos realizada con éxito.");
+            fetchPayouts();
+        } catch (err: unknown) {
+            const error = err as Error;
+            console.error("Error cleaning up payouts:", error.message);
+            alert("Error al limpiar cola de pagos: " + error.message);
+        } finally {
+            setPayoutLoading(false);
+        }
+    };
+
+    const uploadPayoutEvidence = async (payoutId: string, file: File, notes: string) => {
+        setIsUploadingEvidence(true);
+        try {
+            // 1. Subir el archivo al nuevo bucket 'payout-receipts'
+            const fileExt = file.name.split('.').pop();
+            const filePath = `${payoutId}/${Date.now()}.${fileExt}`;
+            const { error: uploadError } = await supabase.storage
+                .from('payout-receipts')
+                .upload(filePath, file);
+            
+            if (uploadError) throw uploadError;
+
+            // 2. Obtener la URL pública
+            const { data: { publicUrl } } = supabase.storage.from('payout-receipts').getPublicUrl(filePath);
+
+            // 3. Actualizar el registro en payouts_queue
+            const { error: updateError } = await supabase
+                .from("payouts_queue")
+                .update({ 
+                    estado: 'completado',
+                    comprobante_url: publicUrl,
+                    notas_admin: notes,
+                    fecha_pago_realizada: new Date().toISOString()
+                })
+                .eq("id", payoutId);
+
+            if (updateError) throw updateError;
+
+            alert("Pago completado y evidencia guardada con éxito.");
+            setIsEvidenceModalOpen(false);
+            setPayoutForEvidence(null);
+            setEvidenceFile(null);
+            setEvidenceNotes("");
+            fetchPayouts();
+        } catch (err: unknown) {
+            const error = err as Error;
+            console.error("Error al procesar evidencia de pago:", error.message);
+            alert("Error al finalizar el pago: " + error.message);
+        } finally {
+            setIsUploadingEvidence(false);
+        }
+    };
+
+
     const checkAuthAndData = useCallback(async () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
@@ -493,7 +663,8 @@ export default function AdminPage() {
         fetchSolicitudesVendedores();
         fetchSociosAprobados();
         fetchPerfiles();
-    }, [router, supabase, fetchPerfiles, fetchPlanos, fetchResenas, fetchSociosAprobados, fetchSolicitudes, fetchSolicitudesVendedores]);
+        fetchPayouts();
+    }, [router, supabase, fetchPerfiles, fetchPlanos, fetchResenas, fetchSociosAprobados, fetchSolicitudes, fetchSolicitudesVendedores, fetchPayouts]);
 
     const fetchCategorias = useCallback(async () => {
         const { data } = await supabase.from("categorias").select("*");
@@ -510,7 +681,28 @@ export default function AdminPage() {
     useEffect(() => {
         checkAuthAndData();
         fetchCategorias();
-    }, [checkAuthAndData, fetchCategorias]);
+
+        if (!isCheckingAuth) {
+            fetchResenas();
+            fetchPayouts();
+
+            // Realtime setup for payouts
+            const channel = supabase.channel('admin_payouts')
+                .on('postgres_changes', { 
+                    event: 'INSERT', 
+                    schema: 'public', 
+                    table: 'payouts_queue' 
+                }, (payload) => {
+                    fetchPayouts();
+                    // Optional: You could show a notification here if you had a toast system
+                })
+                .subscribe();
+
+            return () => {
+                supabase.removeChannel(channel);
+            };
+        }
+    }, [isCheckingAuth, checkAuthAndData, fetchCategorias, fetchResenas, fetchPayouts, supabase]);
 
     if (isCheckingAuth) {
         return (
@@ -521,6 +713,14 @@ export default function AdminPage() {
             </MainLayout>
         );
     }
+
+    const tabs = [
+        { id: 'planos', icon: Images, label: 'Gestión', subLabel: 'Propiedades y Planos' },
+        { id: 'socios', icon: Users, label: 'Socios', subLabel: 'Aprobaciones y Activos', count: solicitudes.filter(s => s.estado === 'pendiente').length + solicitudesVendedores.filter(s => s.estado === 'pendiente').length },
+        { id: 'auditoria', icon: ClipboardCheck, label: 'Auditoría', subLabel: 'Calidad y Moderación', count: resenas.filter(r => !r.aprobado).length + planos.filter(p => p.estado_revision === 'en_revision').length },
+        { id: 'comunidad', icon: Users, label: 'Comunidad', subLabel: 'Usuarios y Roles', count: perfiles.length },
+        { id: 'pagos', icon: DollarSign, label: 'Pagos', subLabel: 'Historial y Pendientes', count: payouts.filter(p => p.estado === 'pendiente').length },
+    ];
 
     return (
         <MainLayout>
@@ -556,65 +756,32 @@ export default function AdminPage() {
 
                     {/* Tabs Navigation - Mobile Scroll Enhancement */}
                     <div className="flex gap-2 md:gap-4 mb-10 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0 md:overflow-visible">
-                        <button
-                            onClick={() => setActiveTab('gestion')}
-                            className={`flex-none md:flex-1 flex items-center justify-center gap-2 md:gap-3 py-3 md:py-4 px-4 md:px-6 rounded-2xl font-bold transition-all border ${activeTab === 'gestion' ? 'bg-brand-blue border-brand-blue text-white shadow-blue-glow' : 'bg-white/5 border-white/10 text-gray-500 hover:bg-white/10 hover:text-white'}`}
-                        >
-                            <Images className="w-5 h-5" />
-                            <div className="text-left">
-                                <div className="text-[10px] md:text-xs">GESTIÓN</div>
-                                <div className="hidden md:block text-[8px] opacity-50 font-normal uppercase tracking-tighter">Propiedades y Planos</div>
-                            </div>
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('socios')}
-                            className={`flex-none md:flex-1 flex items-center justify-center gap-2 md:gap-3 py-3 md:py-4 px-4 md:px-6 rounded-2xl font-bold transition-all border relative ${activeTab === 'socios' ? 'bg-brand-blue border-brand-blue text-white shadow-blue-glow' : 'bg-white/5 border-white/10 text-gray-500 hover:bg-white/10 hover:text-white'}`}
-                        >
-                            <Users className="w-5 h-5" />
-                            <div className="text-left">
-                                <div className="text-[10px] md:text-xs">SOCIOS</div>
-                                <div className="hidden md:block text-[8px] opacity-50 font-normal uppercase tracking-tighter">Aprobaciones y Activos</div>
-                            </div>
-                            {(solicitudes.filter(s => s.estado === 'pendiente').length + solicitudesVendedores.filter(s => s.estado === 'pendiente').length) > 0 && (
-                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-black flex items-center justify-center rounded-full shadow-lg border-2 border-[#020408] animate-pulse">
-                                    {solicitudes.filter(s => s.estado === 'pendiente').length + solicitudesVendedores.filter(s => s.estado === 'pendiente').length}
-                                </span>
-                            )}
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('auditoria')}
-                            className={`flex-none md:flex-1 flex items-center justify-center gap-2 md:gap-3 py-3 md:py-4 px-4 md:px-6 rounded-2xl font-bold transition-all border relative ${activeTab === 'auditoria' ? 'bg-brand-blue border-brand-blue text-white shadow-blue-glow' : 'bg-white/5 border-white/10 text-gray-500 hover:bg-white/10 hover:text-white'}`}
-                        >
-                            <ClipboardCheck className="w-5 h-5" />
-                            <div className="text-left">
-                                <div className="text-[10px] md:text-xs">AUDITORÍA</div>
-                                <div className="hidden md:block text-[8px] opacity-50 font-normal uppercase tracking-tighter">Calidad y Moderación</div>
-                            </div>
-                            {(planos.filter(p => p.estado_revision === 'en_revision').length + resenas.filter(r => !r.aprobado).length) > 0 && (
-                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-black flex items-center justify-center rounded-full shadow-lg border-2 border-[#020408] animate-pulse">
-                                    {planos.filter(p => p.estado_revision === 'en_revision').length + resenas.filter(r => !r.aprobado).length}
-                                </span>
-                            )}
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('comunidad')}
-                            className={`flex-none md:flex-1 flex items-center justify-center gap-2 md:gap-3 py-3 md:py-4 px-4 md:px-6 rounded-2xl font-bold transition-all border relative ${activeTab === 'comunidad' ? 'bg-brand-blue border-brand-blue text-white shadow-blue-glow' : 'bg-white/5 border-white/10 text-gray-500 hover:bg-white/10 hover:text-white'}`}
-                        >
-                            <Users className="w-5 h-5" />
-                            <div className="text-left">
-                                <div className="text-[10px] md:text-xs">COMUNIDAD</div>
-                                <div className="hidden md:block text-[8px] opacity-50 font-normal uppercase tracking-tighter">Usuarios y Roles</div>
-                            </div>
-                            {perfiles.length > 0 && (
-                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-brand-blue text-white text-[10px] font-black flex items-center justify-center rounded-full shadow-lg border-2 border-[#020408]">
-                                    {perfiles.length}
-                                </span>
-                            )}
-                        </button>
+                        {tabs.map((tab) => {
+                            const Icon = tab.icon;
+                            const isActive = activeTab === tab.id;
+                            return (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id as Tab)}
+                                    className={`flex-none md:flex-1 flex items-center justify-center gap-2 md:gap-3 py-3 md:py-4 px-4 md:px-6 rounded-2xl font-bold transition-all border relative ${isActive ? 'bg-brand-blue border-brand-blue text-white shadow-blue-glow' : 'bg-white/5 border-white/10 text-gray-500 hover:bg-white/10 hover:text-white'}`}
+                                >
+                                    <Icon className="w-5 h-5" />
+                                    <div className="text-left">
+                                        <div className="text-[10px] md:text-xs uppercase">{tab.label}</div>
+                                        <div className="hidden md:block text-[8px] opacity-50 font-normal uppercase tracking-tighter">{tab.subLabel}</div>
+                                    </div>
+                                    {tab.count !== undefined && tab.count > 0 && (
+                                        <span className={`absolute -top-1 -right-1 w-5 h-5 ${isActive ? 'bg-white text-brand-blue' : 'bg-brand-blue text-white'} text-[10px] font-black flex items-center justify-center rounded-full shadow-lg border-2 border-[#020408]`}>
+                                            {tab.count}
+                                        </span>
+                                    )}
+                                </button>
+                            );
+                        })}
                     </div>
 
                     {/* Tab Content */}
-                    {activeTab === 'gestion' && (
+                    {activeTab === 'planos' && (
                         <div className="space-y-8 animate-fade-in">
 
                             {/* Upload Form - outside glass-card so mx-auto actually works */}
@@ -1098,6 +1265,14 @@ export default function AdminPage() {
                                                 </div>
                                                 <div className="flex gap-2 mt-4 pt-4 border-t border-white/5">
                                                     <button
+                                                        onClick={() => toggleFeaturedPlano(plano.id, !!plano.destacado)}
+                                                        className={`btn-ghost text-xs py-2 px-3 flex items-center gap-1.5 ${plano.destacado ? 'text-yellow-400 hover:bg-yellow-400/10' : 'text-gray-400 hover:bg-white/10'}`}
+                                                        title={plano.destacado ? "Quitar de destacados" : "Marcar como destacado"}
+                                                    >
+                                                        <Star className={`w-3.5 h-3.5 ${plano.destacado ? 'fill-yellow-400' : ''}`} />
+                                                        {plano.destacado ? 'Destacado' : 'Destacar'}
+                                                    </button>
+                                                    <button
                                                         onClick={() => handleEditPlano(plano)}
                                                         className="btn-ghost text-xs py-2 px-3 text-brand-blue flex items-center gap-1.5 hover:bg-brand-blue/10"
                                                     >
@@ -1232,6 +1407,11 @@ export default function AdminPage() {
                                                         {solicitud.estado}
                                                     </span>
                                                 </div>
+                                                <div className="mb-3">
+                                                    <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border ${solicitud.categoria_socio === 'inmobiliaria' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 'bg-[#0066FF]/10 text-[#0066FF] border-[#0066FF]/20'}`}>
+                                                        {solicitud.categoria_socio || 'arquitectura'}
+                                                    </span>
+                                                </div>
                                                 {solicitud.estado === 'pendiente' && (
                                                     <>
                                                         {confirmAction?.solicitud.id === solicitud.id ? (
@@ -1241,20 +1421,45 @@ export default function AdminPage() {
                                                                         ? `¿Aprobar a ${solicitud.nombre_completo} como Socio Profesional?`
                                                                         : `¿Rechazar la solicitud de ${solicitud.nombre_completo}?`}
                                                                 </p>
-                                                                <div className="flex gap-2">
-                                                                    <button
-                                                                        onClick={() => confirmAction.type === 'approve' ? approveSocio(solicitud) : rejectSocio(solicitud)}
-                                                                        disabled={vendedorLoading}
-                                                                        className={`flex-1 text-sm py-2 px-4 rounded-lg font-bold transition-all ${confirmAction.type === 'approve' ? 'bg-green-500 text-white hover:bg-green-400' : 'bg-red-500 text-white hover:bg-red-400'}`}
-                                                                    >
-                                                                        {vendedorLoading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : (confirmAction.type === 'approve' ? '✅ Confirmar Aprobación' : '❌ Confirmar Rechazo')}
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={() => setConfirmAction(null)}
-                                                                        className="px-4 py-2 text-sm text-gray-400 hover:text-white border border-white/10 rounded-lg"
-                                                                    >
-                                                                        Cancelar
-                                                                    </button>
+                                                                <div className="flex flex-col gap-2">
+                                                                    <div className="flex gap-2">
+                                                                        <button
+                                                                            onClick={() => approveSocio(solicitud, 'arquitectura')}
+                                                                            disabled={vendedorLoading}
+                                                                            className="flex-1 text-[10px] py-2 px-1 bg-[#0066FF] text-white rounded-lg font-bold hover:bg-blue-600 transition-all"
+                                                                        >
+                                                                            Arq.
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => approveSocio(solicitud, 'inmobiliaria')}
+                                                                            disabled={vendedorLoading}
+                                                                            className="flex-1 text-[10px] py-2 px-1 bg-amber-600 text-white rounded-lg font-bold hover:bg-amber-500 transition-all"
+                                                                        >
+                                                                            Inm.
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => approveSocio(solicitud, 'mixto')}
+                                                                            disabled={vendedorLoading}
+                                                                            className="flex-1 text-[10px] py-2 px-1 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-500 transition-all"
+                                                                        >
+                                                                            Mixto
+                                                                        </button>
+                                                                    </div>
+                                                                    <div className="flex gap-2">
+                                                                        <button
+                                                                            onClick={() => rejectSocio(solicitud)}
+                                                                            disabled={vendedorLoading}
+                                                                            className="flex-1 text-xs py-2 bg-red-500 text-white rounded-lg font-bold hover:bg-red-400"
+                                                                        >
+                                                                            Rechazar Solicitud
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => setConfirmAction(null)}
+                                                                            className="px-4 py-2 text-xs text-gray-400 hover:text-white border border-white/10 rounded-lg"
+                                                                        >
+                                                                            X
+                                                                        </button>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         ) : (
@@ -1314,6 +1519,25 @@ export default function AdminPage() {
                                                         {socio.bio && (
                                                             <p className="text-sm text-gray-500 mt-1">{socio.bio}</p>
                                                         )}
+                                                        <div className="mt-2 flex items-center gap-2">
+                                                            <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border ${
+                                                                socio.categoria_socio === 'mixto' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
+                                                                socio.categoria_socio === 'inmobiliaria' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 
+                                                                'bg-[#0066FF]/10 text-[#0066FF] border-[#0066FF]/20'
+                                                            }`}>
+                                                                {socio.categoria_socio || 'arquitectura'}
+                                                            </span>
+                                                            
+                                                            <select 
+                                                                value={socio.categoria_socio || 'arquitectura'}
+                                                                onChange={(e) => updateSocioCategoria(socio, e.target.value as 'arquitectura' | 'inmobiliaria' | 'mixto')}
+                                                                className="bg-black/40 border border-white/10 rounded px-2 py-0.5 text-[10px] text-gray-400 focus:border-brand-blue outline-none"
+                                                            >
+                                                                <option value="arquitectura">Cambiar a Arquitectura</option>
+                                                                <option value="inmobiliaria">Cambiar a Inmobiliaria</option>
+                                                                <option value="mixto">Convertir a Mixto (Dual)</option>
+                                                            </select>
+                                                        </div>
                                                     </div>
                                                     <div className="text-right">
                                                         <p className="text-xs text-gray-500">Miembro desde</p>
@@ -1495,7 +1719,6 @@ export default function AdminPage() {
                             </div>
                         </div>
                     )}
-
                     {activeTab === 'comunidad' && (
                         <div className="space-y-8 animate-fade-in">
                             <div className="glass-card p-6">
@@ -1562,6 +1785,183 @@ export default function AdminPage() {
                             </div>
                         </div>
                     )}
+
+                    {activeTab === 'pagos' && (
+                        <div className="space-y-8 animate-fade-in">
+                            <div className="glass-card p-6">
+                                <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
+                                    <div className="flex items-center gap-3">
+                                        <DollarSign className="w-6 h-6 text-brand-blue" />
+                                        <h2 className="font-display text-xl font-bold text-white">Cola de Pagos a Arquitectos</h2>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <button
+                                            onClick={cleanupCompletedPayouts}
+                                            className="btn-ghost text-xs py-1.5 px-3 text-red-400 border-red-500/20 hover:bg-red-500/10 flex items-center gap-2"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                            Limpiar Completados
+                                        </button>
+                                        <span className="badge bg-brand-blue/10 text-brand-blue border-brand-blue/20">
+                                            {payouts.filter(p => p.estado === 'pendiente').length} Pendientes
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {payoutLoading && payouts.length === 0 ? (
+                                    <div className="flex justify-center py-12">
+                                        <Loader2 className="w-8 h-8 animate-spin text-brand-blue" />
+                                    </div>
+                                ) : payouts.length === 0 ? (
+                                    <div className="text-center py-12 text-gray-500 font-display italic">
+                                        No hay registros de pagos en la cola o todas las ventas han sido liquidadas.
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 gap-4">
+                                        {payouts.map((p) => {
+                                            // Handle potential legacy data or missing fields safely
+                                            const metodo = p.metodo_usado || {};
+                                            return (
+                                                <div key={p.id} className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 flex flex-col md:flex-row gap-6 hover:border-brand-blue/20 transition-all group">
+                                                    <div className="flex-grow space-y-4">
+                                                        <div className="flex items-start justify-between">
+                                                            <div>
+                                                                <h3 className="text-lg font-bold text-white group-hover:text-brand-blue transition-colors">
+                                                                    {p.vendedor?.nombre_completo || "Socio de ARQOVEX"}
+                                                                </h3>
+                                                                <p className="text-sm font-black text-emerald-400 tracking-tighter">Monto: ${p.monto_payout.toFixed(2)} USD</p>
+                                                                <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mt-1 flex items-center gap-2">
+                                                                    <LayoutDashboard className="w-3 h-3" /> 
+                                                                    Producto: {p.venta?.plano?.titulo || "Proyecto Vendido"}
+                                                                </p>
+                                                            </div>
+                                                            <div className={`px-3 py-1 rounded-full text-[10px] font-black tracking-widest border ${
+                                                                p.estado === 'pendiente' ? 'bg-orange-500/10 text-orange-400 border-orange-500/20' :
+                                                                p.estado === 'completado' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
+                                                                'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                                                            }`}>
+                                                                {p.estado.toUpperCase()}
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-black/40 p-5 rounded-2xl border border-white/5 shadow-inner">
+                                                            <div className="space-y-1">
+                                                                <label className="text-[9px] text-gray-500 font-black uppercase tracking-widest block">Método del Socio</label>
+                                                                <p className="text-xs text-white font-bold flex items-center gap-2">
+                                                                    {metodo.metodo === 'paypal' ? (
+                                                                        <><CheckCircle2 className="w-3 h-3 text-blue-400" /> PAYPAL BUSINESS</>
+                                                                    ) : (
+                                                                        <><Building2 className="w-3 h-3 text-amber-400" /> TRANSFERENCIA LOCAL (RD)</>
+                                                                    )}
+                                                                </p>
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <label className="text-[9px] text-gray-500 font-black uppercase tracking-widest block">
+                                                                    {metodo.metodo === 'paypal' ? 'CORREO ELECTRÓNICO' : 'Nº DE CUENTA'}
+                                                                </label>
+                                                                <p className="text-sm text-brand-blue font-black font-mono tracking-tighter">
+                                                                    {metodo.metodo === 'paypal' ? metodo.paypal : metodo.cuenta}
+                                                                </p>
+                                                            </div>
+                                                            {metodo.metodo === 'transferencia_local' && (
+                                                                <>
+                                                                    <div className="space-y-1">
+                                                                        <label className="text-[9px] text-gray-500 font-black uppercase tracking-widest block">Entidad Bancaria</label>
+                                                                        <p className="text-xs text-white/90 font-medium uppercase">{metodo.banco}</p>
+                                                                    </div>
+                                                                    <div className="space-y-1">
+                                                                        <label className="text-[9px] text-gray-500 font-black uppercase tracking-widest block">Documento Identidad</label>
+                                                                        <p className="text-xs text-white/90 font-mono italic">{metodo.cedula}</p>
+                                                                    </div>
+                                                                </>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Desglose Financiero */}
+                                                        <div className="mt-4 p-5 bg-white/[0.03] rounded-2xl border border-white/5 shadow-xl transition-all hover:bg-white/[0.05]">
+                                                            <div className="flex justify-between items-center mb-4">
+                                                                <h4 className="text-[10px] font-black uppercase text-gray-500 tracking-[0.2em] flex items-center gap-2">
+                                                                    <DollarSign className="w-3 h-3 text-brand-blue" /> Desglose de Operación
+                                                                </h4>
+                                                                <span className="text-[9px] text-gray-700 italic font-mono uppercase">Ref: {p.venta_id?.slice(0, 8) || 'Manual'}</span>
+                                                            </div>
+                                                            
+                                                            <div className="grid grid-cols-3 gap-0 border border-white/5 rounded-xl overflow-hidden divide-x divide-white/5">
+                                                                <div className="p-3 bg-black/20 text-center">
+                                                                    <p className="text-[8px] text-gray-500 font-bold uppercase mb-1">Venta Total</p>
+                                                                    <p className="text-sm font-black text-white">${p.venta?.monto_usd?.toFixed(2) || "0.00"}</p>
+                                                                </div>
+                                                                <div className="p-3 bg-white/[0.01] text-center">
+                                                                    <p className="text-[8px] text-brand-blue-light font-bold uppercase mb-1">ARQOVEX (15%)</p>
+                                                                    <p className="text-sm font-black text-brand-blue-light">-${((p.venta?.monto_usd || 0) * 0.15).toFixed(2)}</p>
+                                                                </div>
+                                                                <div className="p-3 bg-emerald-500/[0.02] text-center">
+                                                                    <p className="text-[8px] text-emerald-500 font-bold uppercase mb-1">Socio (85%)</p>
+                                                                    <p className="text-sm font-black text-emerald-400">${p.monto_payout.toFixed(2)}</p>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="w-10 h-10 rounded-full bg-brand-blue/10 border border-brand-blue/20 flex items-center justify-center text-brand-blue">
+                                                                        <Users className="w-5 h-5" />
+                                                                    </div>
+                                                                    <div>
+                                                                        <p className="text-[9px] text-gray-500 font-black uppercase tracking-widest mb-0.5" >Comprador</p>
+                                                                        <p className="text-xs text-white font-bold">{p.venta?.usuario?.nombre_completo || "Cliente de ARQOVEX"}</p>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="text-right">
+                                                                    <p className="text-[9px] text-gray-500 font-black uppercase tracking-widest mb-0.5">Contacto</p>
+                                                                    <p className="text-[10px] text-brand-blue-light font-mono select-all hover:text-white transition-colors">
+                                                                        {p.venta?.usuario?.email || "anonimo@arqovex.com"}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex flex-col justify-center gap-3 md:w-56 border-t md:border-t-0 md:border-l border-white/5 pt-4 md:pt-0 md:pl-6">
+                                                        {p.estado === 'pendiente' ? (
+                                                            <button
+                                                                onClick={() => {
+                                                                    setPayoutForEvidence(p);
+                                                                    setIsEvidenceModalOpen(true);
+                                                                }}
+                                                                className="btn-primary py-3 text-[10px] font-black tracking-tighter flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 border-none shadow-emerald-500/10 group-hover:scale-[1.02] transition-transform"
+                                                            >
+                                                                <CheckCircle2 className="w-4 h-4" /> NOTIFICAR PAGO ENVIADO
+                                                            </button>
+                                                        ) : p.estado === 'completado' && p.comprobante_url ? (
+                                                            <button
+                                                                onClick={() => {
+                                                                    setActiveVoucher(p);
+                                                                    setIsVoucherModalOpen(true);
+                                                                }}
+                                                                className="btn-ghost py-3 text-[10px] font-black tracking-tighter flex items-center justify-center gap-2 text-brand-blue border-brand-blue/20 hover:bg-brand-blue/5 transition-all"
+                                                            >
+                                                                <FileText className="w-4 h-4" /> VER RECIBO DE PAGO
+                                                            </button>
+                                                        ) : (
+                                                            <div className="py-3 text-[10px] text-gray-500 text-center font-bold opacity-50">
+                                                                PAGO LIQUIDADO
+                                                            </div>
+                                                        )}
+                                                        <div className="mt-auto space-y-1">
+                                                            <div className="text-[9px] text-gray-600 font-bold uppercase tracking-widest flex items-center justify-center gap-1.5">
+                                                                <Clock className="w-2.5 h-2.5" /> {p.created_at ? new Date(p.created_at).toLocaleDateString() : 'N/A'}
+                                                            </div>
+                                                            <div className="text-[8px] text-gray-700 italic text-center">ID Venta: {p.venta_id?.slice(0, 8) || 'Manual'}...</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -1580,7 +1980,186 @@ export default function AdminPage() {
                     }}
                     userId={user.id}
                     plano={selectedPlanoForEdit}
+                    categoriaSocio={selectedPlanoForEdit?.tipo_propiedad?.toLowerCase().includes('inmueble') || selectedPlanoForEdit?.tipo_propiedad?.toLowerCase().includes('propiedad') ? 'inmobiliaria' : 'arquitectura'}
                 />
+            )}
+
+            {/* Modal: Subir Evidencia de Pago */}
+            {isEvidenceModalOpen && payoutForEvidence && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+                    <div className="glass-card w-full max-w-lg p-8 space-y-6 relative border-brand-blue/30 shadow-2xl shadow-brand-blue/10">
+                        <button onClick={() => setIsEvidenceModalOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+                            <X className="w-6 h-6" />
+                        </button>
+
+                        <div className="text-center space-y-2">
+                            <div className="w-16 h-16 bg-brand-blue/10 rounded-full flex items-center justify-center mx-auto border border-brand-blue/20">
+                                <DollarSign className="w-8 h-8 text-brand-blue" />
+                            </div>
+                            <h2 className="text-2xl font-display font-bold text-white">Finalizar Pago a Socio</h2>
+                            <p className="text-sm text-gray-400">Adjunta el comprobante para cerrar este registro oficialmente.</p>
+                        </div>
+
+                        <div className="bg-white/5 p-4 rounded-xl border border-white/10 space-y-1">
+                            <div className="flex justify-between text-xs">
+                                <span className="text-gray-500 uppercase font-bold tracking-widest">Socio</span>
+                                <span className="text-white font-bold">{payoutForEvidence.vendedor?.nombre_completo}</span>
+                            </div>
+                            <div className="flex justify-between text-xs">
+                                <span className="text-gray-500 uppercase font-bold tracking-widest">Monto a Enviar</span>
+                                <span className="text-emerald-400 font-black">${payoutForEvidence.monto_payout.toFixed(2)} USD</span>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-brand-blue uppercase tracking-widest">Subir Comprobante (Captura/PDF)</label>
+                                <div className="relative group">
+                                    <div className={`input-field min-h-[80px] flex flex-col items-center justify-center gap-2 border-dashed transition-all cursor-pointer ${evidenceFile ? 'border-emerald-500/50 bg-emerald-500/5' : 'border-white/20 hover:border-brand-blue/50'}`}>
+                                        {evidenceFile ? (
+                                            <>
+                                                <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+                                                <p className="text-[10px] text-emerald-500 font-bold truncate max-w-[250px]">{evidenceFile.name}</p>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Upload className="w-6 h-6 text-gray-500" />
+                                                <p className="text-[10px] text-gray-500 font-bold uppercase">Seleccionar archivo</p>
+                                            </>
+                                        )}
+                                    </div>
+                                    <input 
+                                        type="file" accept="image/*,.pdf" 
+                                        onChange={e => setEvidenceFile(e.target.files?.[0] || null)}
+                                        className="absolute inset-0 opacity-0 cursor-pointer" 
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-brand-blue uppercase tracking-widest">Notas Adicionales (Opcional)</label>
+                                <textarea 
+                                    value={evidenceNotes}
+                                    onChange={e => setEvidenceNotes(e.target.value)}
+                                    placeholder="Ej: Transferencia vía PayPal completada. Referencia #12345"
+                                    className="input-field py-3 min-h-[80px] text-sm resize-none"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 pt-4">
+                            <button 
+                                onClick={() => setIsEvidenceModalOpen(false)}
+                                className="flex-1 btn-ghost py-4 text-xs font-bold uppercase"
+                            >
+                                Cancelar
+                            </button>
+                            <button 
+                                onClick={() => {
+                                    if (!evidenceFile) {
+                                        alert("Por favor sube una captura del comprobante.");
+                                        return;
+                                    }
+                                    uploadPayoutEvidence(payoutForEvidence.id, evidenceFile, evidenceNotes);
+                                }}
+                                disabled={isUploadingEvidence}
+                                className="flex-[2] btn-primary py-4 text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 border-none"
+                            >
+                                {isUploadingEvidence ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" /> Procesando...
+                                    </>
+                                ) : (
+                                    <>Finalizar Pago</>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal: Ver Recibo (Voucher) */}
+            {isVoucherModalOpen && activeVoucher && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fade-in">
+                    <div className="bg-white text-black w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl relative">
+                        {/* Cabecera del Voucher Style */}
+                        <div className="bg-[#001D3D] p-10 text-white relative">
+                            <div className="flex justify-between items-start">
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-8 h-8 relative">
+                                            <Image src="/logo.png" alt="ARQOVEX" fill className="object-contain brightness-0 invert" />
+                                        </div>
+                                        <span className="font-display text-xl font-bold tracking-tighter">ARQO<span className="text-[#0066FF]">VEX</span></span>
+                                    </div>
+                                    <div>
+                                        <h2 className="text-3xl font-display font-black uppercase tracking-tighter italic">Comprobante de Pago</h2>
+                                        <p className="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em]">Official Payout Voucher</p>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-[9px] text-[#0066FF] font-black uppercase tracking-widest">ID Transacción</p>
+                                    <p className="text-sm font-mono font-bold">{activeVoucher.id.slice(0, 13).toUpperCase()}</p>
+                                    <p className="text-[10px] text-gray-500 mt-2">{activeVoucher.fecha_pago_realizada ? new Date(activeVoucher.fecha_pago_realizada).toLocaleString() : 'N/A'}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-10 space-y-10">
+                            <div className="grid grid-cols-2 gap-12">
+                                <div className="space-y-4">
+                                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-1 block">Beneficiario</label>
+                                    <div className="space-y-1">
+                                        <p className="font-bold text-lg">{activeVoucher.vendedor?.nombre_completo}</p>
+                                        <p className="text-xs text-gray-500">{activeVoucher.metodo_usado?.metodo?.toUpperCase()} - {activeVoucher.metodo_usado?.paypal || activeVoucher.metodo_usado?.cuenta}</p>
+                                    </div>
+                                </div>
+                                <div className="space-y-4 text-right">
+                                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-1 block">Monto Liquidado</label>
+                                    <div className="space-y-1">
+                                        <p className="text-3xl font-black text-[#001D3D]">${activeVoucher.monto_payout.toFixed(2)} <span className="text-sm font-normal text-gray-400">USD</span></p>
+                                        <p className="text-[9px] text-emerald-600 font-bold uppercase italic">85% Neto del Socio</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 space-y-4">
+                                <div className="flex items-center gap-3 text-gray-400">
+                                    <FileText className="w-4 h-4" />
+                                    <span className="text-[9px] font-black uppercase tracking-widest">Evidencia Adjunta</span>
+                                </div>
+                                {activeVoucher.comprobante_url ? (
+                                    <div className="flex gap-4 items-center">
+                                        <div className="w-20 h-20 bg-white border border-gray-200 rounded-xl overflow-hidden relative group cursor-pointer shadow-sm">
+                                            <Image src={activeVoucher.comprobante_url} alt="Comprobante" fill className="object-cover" />
+                                            <a href={activeVoucher.comprobante_url} target="_blank" rel="noopener noreferrer" className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                                <ExternalLink className="w-4 h-4 text-white" />
+                                            </a>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-xs font-bold text-gray-700">Digital Receipt Image</p>
+                                            <p className="text-[10px] text-gray-400 italic max-w-[300px] leading-relaxed">
+                                                &quot;{activeVoucher.notas_admin || "Sin notas adicionales."}&quot;
+                                            </p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <p className="text-xs text-gray-400 italic">No se adjuntó comprobante visual.</p>
+                                )}
+                            </div>
+
+                            <div className="flex items-center justify-between pt-8 border-t border-gray-100">
+                                <div className="flex items-center gap-3 text-[9px] text-gray-400 font-bold uppercase tracking-[0.2em]">
+                                    <ShieldCheck className="w-4 h-4 text-[#0066FF]" /> Verified by ARQOVEX Finance
+                                </div>
+                                <div className="flex gap-2">
+                                    <button onClick={() => window.print()} className="px-5 py-2 rounded-full border border-gray-200 text-xs font-bold hover:bg-gray-50 transition-colors">Imprimir</button>
+                                    <button onClick={() => setIsVoucherModalOpen(false)} className="px-5 py-2 rounded-full bg-[#001D3D] text-white text-xs font-bold hover:bg-black transition-colors">Cerrar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             )}
         </MainLayout>
     );

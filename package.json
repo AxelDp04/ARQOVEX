@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@google/model-viewer": "^4.2.0",
     "@paypal/react-paypal-js": "^9.0.1",
     "@react-email/components": "^1.0.9",

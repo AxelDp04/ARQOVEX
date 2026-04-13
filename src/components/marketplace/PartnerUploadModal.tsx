@@ -17,11 +17,12 @@ interface PartnerUploadModalProps {
     onSuccess: () => void;
     userId: string;
     plano?: Plano | null; // Added for edit mode
+    categoriaSocio: 'arquitectura' | 'inmobiliaria';
 }
 
 
 
-export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId, plano }: PartnerUploadModalProps) {
+export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId, plano, categoriaSocio }: PartnerUploadModalProps) {
     const supabase = createClient();
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
@@ -137,9 +138,27 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
         setFormData(prev => ({...prev, precio: num}));
     };
 
-    const handleImgPrincipalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const validateImageResolution = (file: File) => {
+        return new Promise<{ width: number; height: number }>((resolve) => {
+            const img = new globalThis.Image();
+            img.onload = () => {
+                const results = { width: img.naturalWidth, height: img.naturalHeight };
+                URL.revokeObjectURL(img.src);
+                resolve(results);
+            };
+            img.src = URL.createObjectURL(file);
+        });
+    };
+
+    const handleImgPrincipalChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files?.[0]) {
             const file = e.target.files[0];
+            const dims = await validateImageResolution(file);
+            
+            if (dims.width < 1200) {
+                alert(`⚠️ AVISO DE CALIDAD: La imagen de portada es algo pequeña (${dims.width}px). Para una nitidez cristalina en ARQOVEX, recomendamos al menos 1600px.`);
+            }
+            
             setPortada(file);
             setImgPrincipalPreview(URL.createObjectURL(file));
         }
@@ -151,9 +170,17 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
         }
     };
 
-    const handleGaleriaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleGaleriaChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
-            setGaleria(prev => [...prev, ...Array.from(e.target.files!)]);
+            const files = Array.from(e.target.files);
+            setGaleria((prev: File[]) => [...prev, ...files]);
+            
+            if (files.length > 0) {
+                const dims = await validateImageResolution(files[0]);
+                if (dims.width < 1200) {
+                    alert("⚠️ AVISO DE GALERÍA: Algunas imágenes tienen baja resolución. Recomendamos fotos HD para destacar tu proyecto.");
+                }
+            }
         }
     };
 
@@ -171,7 +198,12 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
             if (!isEditMode && !portada) throw new Error("La imagen principal es obligatoria.");
             if (!formData.categoria_id) throw new Error("Debes seleccionar una categoría.");
             if (!isEditMode && (galeria.length < 3 || galeria.length > 10)) {
-                throw new Error("Debes subir entre 3 y 10 fotos para la galería del proyecto.");
+                throw new Error("Debes subir entre 3 y 10 fotos para la galería.");
+            }
+
+            // Arquitectos must upload technical file (Strictly mandatory for designs)
+            if (!isEditMode && categoriaSocio === 'arquitectura' && !archivoTecnico) {
+                throw new Error("Como arquitecto, DEBES subir el archivo técnico (PDF o ZIP de los planos) para finalizar la publicación.");
             }
 
             let portadaUrl = plano?.imagen_url || "";
@@ -283,10 +315,10 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
                             </div>
                             <div>
                                 <h2 className="text-xl font-bold text-white uppercase tracking-wider">
-                                    {isEditMode ? "Editar en Portal de Socios" : "Publicar en Portal de Socios"}
+                                    {isEditMode ? (categoriaSocio === 'inmobiliaria' ? "Editar Propiedad" : "Editar Diseño") : (categoriaSocio === 'inmobiliaria' ? "Publicar Propiedad" : "Publicar Diseño")}
                                 </h2>
                                 <p className="text-xs text-gray-500 font-medium">
-                                    {isEditMode ? "Actualizar Proyecto" : "Nuevo Proyecto"} • Paso {step} de 4
+                                    {isEditMode ? (categoriaSocio === 'inmobiliaria' ? "Actualizar Inmueble" : "Actualizar Plano") : (categoriaSocio === 'inmobiliaria' ? "Nueva Propiedad" : "Nuevo Diseño")} • Paso {step} de 4
                                 </p>
                             </div>
                         </div>
@@ -316,10 +348,12 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
                             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] uppercase font-bold text-brand-blue tracking-widest block">Título del Proyecto</label>
+                                        <label className="text-[10px] uppercase font-bold text-brand-blue tracking-widest block">
+                                            {categoriaSocio === 'inmobiliaria' ? "Nombre de la Propiedad" : "Título del Diseño"}
+                                        </label>
                                         <input 
                                             name="titulo" value={formData.titulo} onChange={handleInputChange}
-                                            placeholder="Ej: Villa Esmeralda - Premium Edition" 
+                                            placeholder={categoriaSocio === 'inmobiliaria' ? "Ej: Apartamento en Piantini - Vista al Mar" : "Ej: Villa Esmeralda - Premium Edition"} 
                                             className="input-field py-4"
                                             required
                                         />
@@ -341,10 +375,13 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-[10px] uppercase font-bold text-brand-blue tracking-widest block">Resumen del Proyecto</label>
+                                    <label className="text-[10px] uppercase font-bold text-brand-blue tracking-widest block">
+                                        {categoriaSocio === 'inmobiliaria' ? "Descripción del Inmueble" : "Resumen del Diseño"}
+                                    </label>
                                     <textarea 
                                         name="descripcion" value={formData.descripcion} onChange={handleInputChange}
-                                        rows={4} placeholder="Describe la visión de este diseño..." 
+                                        rows={4} 
+                                        placeholder={categoriaSocio === 'inmobiliaria' ? "Describe las amenidades, ubicación y detalles únicos..." : "Describe la visión arquitectónica de este diseño..."} 
                                         className="input-field py-4 resize-none"
                                         required
                                     />
@@ -449,7 +486,9 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
                                         <h4 className="font-bold text-white text-sm">Control de Calidad</h4>
                                     </div>
                                     <p className="text-xs text-gray-500 leading-relaxed">
-                                        ARQOVEX mantiene estándares premium. Asegúrate de que las dimensiones sean reales y los servicios de infraestructura estén contemplados.
+                                        {categoriaSocio === 'inmobiliaria' 
+                                            ? "ARQOVEX mantiene estándares premium. Asegúrate de incluir la ubicación exacta y detalles verídicos de la propiedad."
+                                            : "ARQOVEX mantiene estándares premium. Asegúrate de que las dimensiones sean reales y los servicios de infraestructura estén contemplados."}
                                     </p>
                                 </div>
                             </motion.div>
@@ -581,13 +620,17 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
                                 </div>
 
                                 <div className="space-y-4">
-                                    <label className="text-[10px] uppercase font-bold text-orange-400 tracking-widest block">Archivo Técnico (Protegido)</label>
-                                    <div className="p-4 rounded-xl bg-orange-500/5 border border-orange-500/10 flex items-center justify-between">
+                                    <label className={`text-[10px] uppercase font-bold tracking-widest block ${categoriaSocio === 'arquitectura' ? 'text-red-400 animate-pulse' : 'text-gray-400'}`}>
+                                        {categoriaSocio === 'arquitectura' ? "Archivo Técnico (PLANOS PDF/ZIP - OBLIGATORIO)" : "Documentación Adicional (Opcional)"}
+                                    </label>
+                                    <div className={`p-4 rounded-xl border flex items-center justify-between ${categoriaSocio === 'arquitectura' ? 'bg-orange-500/5 border-orange-500/10' : 'bg-white/5 border-white/10'}`}>
                                         <div className="flex items-center gap-3">
-                                            <FileText className="w-6 h-6 text-orange-400" />
+                                            <FileText className={`w-6 h-6 ${categoriaSocio === 'arquitectura' ? 'text-orange-400' : 'text-gray-400'}`} />
                                             <div>
-                                                <p className="text-sm font-bold text-white">{archivoTecnico ? archivoTecnico.name : "Subir Archivo (.zip / .pdf)"}</p>
-                                                <p className="text-[10px] text-gray-500 uppercase">Solo el comprador final tendrá acceso.</p>
+                                                <p className="text-sm font-bold text-white">{archivoTecnico ? archivoTecnico.name : (categoriaSocio === 'arquitectura' ? "Subir Planos (.zip / .pdf)" : "Subir Folleto / Legal")}</p>
+                                                <p className="text-[10px] text-gray-500 uppercase">
+                                                    {categoriaSocio === 'arquitectura' ? "Solo el comprador final tendrá acceso." : "Archivos privados para gestión administrativa."}
+                                                </p>
                                                 {isEditMode && plano.url_archivo && !archivoTecnico && (
                                                     <p className="text-[10px] text-emerald-500">Archivo actual conservado.</p>
                                                 )}

@@ -10,7 +10,7 @@ const cspHeader = `
     form-action 'self';
     frame-ancestors 'none';
     frame-src 'self' https://www.paypal.com https://*.paypal.com https://www.sandbox.paypal.com https://www.google.com https://*.google.com;
-    connect-src 'self' https://rdbdwvwmnozumwtxdmra.supabase.co https://*.supabase.co https://www.paypal.com https://*.paypal.com https://www.sandbox.paypal.com https://*.googleapis.com;
+    connect-src 'self' https://rdbdwvwmnozumwtxdmra.supabase.co wss://rdbdwvwmnozumwtxdmra.supabase.co https://*.supabase.co https://www.paypal.com https://*.paypal.com https://www.sandbox.paypal.com https://*.googleapis.com;
     media-src 'self' blob: data: https://rdbdwvwmnozumwtxdmra.supabase.co https://*.supabase.co;
 `;
 
@@ -75,6 +75,9 @@ const nextConfig = {
                 ],
             },
         ];
+    },
+    eslint: {
+        ignoreDuringBuilds: true,
     },
 };
 

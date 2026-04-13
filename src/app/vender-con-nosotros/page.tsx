@@ -39,6 +39,7 @@ export default function VenderConNosotrosPage() {
     instagram: "",
     facebook: "",
     linkedin: "",
+    categoria_socio: "arquitectura" as "arquitectura" | "inmobiliaria" | "mixto",
   });
 
   const steps = [
@@ -74,6 +75,7 @@ export default function VenderConNosotrosPage() {
             facebook: formData.facebook,
             linkedin: formData.linkedin,
           },
+          categoria_socio: formData.categoria_socio,
         },
       ]);
       if (insertError) throw insertError;
@@ -308,6 +310,35 @@ export default function VenderConNosotrosPage() {
                             className="w-full px-4 py-3 bg-white/[0.05] border border-white/[0.1] rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-[#0066FF]/60 focus:bg-white/[0.08] transition-all min-h-[120px] resize-y"
                             required
                           />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-400 mb-2">Especialidad</label>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <button
+                              type="button"
+                              onClick={() => setFormData({ ...formData, categoria_socio: 'arquitectura' })}
+                              className={`p-4 rounded-xl border text-left transition-all ${formData.categoria_socio === 'arquitectura' ? 'bg-[#0066FF]/10 border-[#0066FF] text-white' : 'bg-white/5 border-white/10 text-gray-500 hover:border-white/20'}`}
+                            >
+                              <div className="font-bold text-sm mb-1 text-center">Arquitectura</div>
+                              <div className="text-[10px] opacity-60 text-center">Diseño de planos y modelos 3D</div>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setFormData({ ...formData, categoria_socio: 'inmobiliaria' })}
+                              className={`p-4 rounded-xl border text-left transition-all ${formData.categoria_socio === 'inmobiliaria' ? 'bg-amber-500/10 border-amber-500 text-white' : 'bg-white/5 border-white/10 text-gray-500 hover:border-white/20'}`}
+                            >
+                              <div className="font-bold text-sm mb-1 text-center">Inmobiliaria</div>
+                              <div className="text-[10px] opacity-60 text-center">Venta de casas y propiedades</div>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setFormData({ ...formData, categoria_socio: 'mixto' })}
+                              className={`p-4 rounded-xl border text-left transition-all ${formData.categoria_socio === 'mixto' ? 'bg-purple-500/10 border-purple-500 text-white' : 'bg-white/5 border-white/10 text-gray-500 hover:border-white/20'}`}
+                            >
+                              <div className="font-bold text-sm mb-1 text-center">Perfil Mixto</div>
+                              <div className="text-[10px] opacity-60 text-center">Ambos: Diseño y Gestión Real Estate</div>
+                            </button>
+                          </div>
                         </div>
                         <button
                           type="button"

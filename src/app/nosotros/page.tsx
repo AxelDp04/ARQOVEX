@@ -40,8 +40,8 @@ export default function SobreNosotrosPage() {
                         </div>
                         <div className="grid grid-cols-2 gap-6">
                             <div className="p-6 glass-card border-none bg-white/[0.03]">
-                                <div className="text-3xl font-bold text-brand-blue">200+</div>
-                                <div className="text-sm text-gray-500 uppercase tracking-tighter">Proyectos Listos</div>
+                                <div className="text-3xl font-bold text-brand-blue">Premium</div>
+                                <div className="text-sm text-gray-500 uppercase tracking-tighter">Diseños Curados</div>
                             </div>
                             <div className="p-6 glass-card border-none bg-white/[0.03]">
                                 <div className="text-3xl font-bold text-brand-blue">100%</div>
@@ -112,12 +112,12 @@ export default function SobreNosotrosPage() {
                                 </div>
                                 <div className="lg:col-span-3 space-y-8">
                                     <div className="space-y-4">
-                                        <h2 className="text-3xl font-display font-bold text-white">El Ingeniero detrás de la Plataforma</h2>
-                                        <p className="text-gray-400 italic">&quot;Mi objetivo es transformar la forma en que interactuamos con la arquitectura a través del código.&quot;</p>
+                                        <h2 className="text-3xl font-display font-bold text-white">Sobre Mí</h2>
+                                        <p className="text-gray-400 italic">&quot;Para mí, programar no es solo escribir código; es construir soluciones reales que impacten positivamente en la vida de los demás.&quot;</p>
                                         <p className="text-gray-400 leading-relaxed">
-                                            Ingeniero en Sistemas Computacionales de 21 años, residente en Santo Domingo Este. Axel es el motor tecnológico
-                                            de ARQOVEX, especializado en la creación de ecosistemas digitales de alta complejidad. Su enfoque combina el
-                                            desarrollo web de vanguardia con la optimización de procesos para el sector inmobiliario internacional.
+                                            Soy un apasionado de la tecnología y actualmente resido en Santo Domingo Este. Me encuentro en el tramo final de mi carrera como Ingeniero en Sistemas, 
+                                            y gran parte de mi base técnica la formé en el ITLA. Como responsable del desarrollo de ARQOVEX, mi meta es asegurar que cada detalle de la plataforma 
+                                            sea sólido, rápido y, sobre todo, fácil de usar para ti.
                                         </p>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

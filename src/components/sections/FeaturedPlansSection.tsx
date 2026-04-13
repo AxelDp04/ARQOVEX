@@ -16,7 +16,11 @@ export default function FeaturedPlansSection() {
     const fetchPlanos = async () => {
       const { data, error } = await supabase
         .from("planos")
-        .select("*, categoria:categorias(*), galeria:galeria_propiedades(imagen_url)")
+        .select(`
+          *,
+          categoria:categorias(*),
+          galeria:galeria_propiedades!fk_galeria_plano(imagen_url)
+        `)
         .eq("destacado", true)
         .eq("disponible", true)
         .eq("estado_revision", "publicado")

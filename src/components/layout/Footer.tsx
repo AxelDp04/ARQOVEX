@@ -144,7 +144,7 @@ export default function Footer() {
                             © {new Date().getFullYear()} ARQOVEX. Todos los derechos reservados.
                         </p>
                         <p className="text-xs text-gray-400/60 font-light">
-                            Dirección: Robert Carrasco | Desarrollo: Ing. Axel Perez | <a href="https://wa.me/18098285104" target="_blank" rel="noopener noreferrer" className="hover:text-brand-blue-light transition-colors">+1 809-828-5104</a>
+                            Dirección: Arq. Robert Carrasco | Desarrollo: Ing. Axel Perez | <a href="https://wa.me/18098285104" target="_blank" rel="noopener noreferrer" className="hover:text-brand-blue-light transition-colors">+1 809-828-5104</a>
                         </p>
                     </div>
                     <p className="text-xs text-gray-400">

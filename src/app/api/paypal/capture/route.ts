@@ -41,7 +41,6 @@ export async function POST(req: Request) {
     let body;
     try {
         body = await req.json();
-        console.log("Incoming PayPal Capture Request:", JSON.stringify(body, null, 2));
     } catch (e) {
         console.error("Failed to parse request body:", e);
         return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
@@ -93,7 +92,8 @@ export async function POST(req: Request) {
 
             return NextResponse.json({ status: "COMPLETED" });
         } else {
-            console.error("PayPal Capture ERROR Detail:", JSON.stringify(captureData, null, 2));
+            // Keep error details but don't log the entire object to console if not needed, 
+            // though for PayPal errors it might be useful. I'll just remove the log.
             return NextResponse.json({ 
                 status: "FAILED", 
                 details: captureData,

@@ -16,7 +16,8 @@ import {
     ChevronLeft,
     ChevronRight,
     User,
-    CreditCard
+    CreditCard,
+    Eye
 } from "lucide-react";
 import type { Plano } from "@/types";
 import QuickBuyModal from "@/components/ui/QuickBuyModal";
@@ -108,6 +109,7 @@ export default function PlanoCard({ plano, onToggleFavorito, isFavorito = false 
                                 fill
                                 className="object-cover"
                                 priority={activeIndex === 0}
+                                quality={100}
                                 loading={activeIndex === 0 ? "eager" : "lazy"}
                                 onLoad={() => setIsImageLoading(false)}
                                 onError={() => { setImgError(true); setIsImageLoading(false); }}
@@ -212,6 +214,12 @@ export default function PlanoCard({ plano, onToggleFavorito, isFavorito = false 
                         <Heart className={`w-4 h-4 transition-all ${isFavorito ? "fill-current" : ""}`} />
                     </button>
                 )}
+
+                {/* Floating View Count */}
+                <div className="absolute bottom-3 right-3 px-2 py-0.5 rounded-lg bg-black/60 border border-white/10 backdrop-blur-md text-white text-[9px] font-bold flex items-center gap-1 z-10 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 shadow-lg">
+                    <Eye className="w-3 h-3 text-brand-blue" />
+                    {plano.total_vistas || 0}
+                </div>
             </div>
 
             {/* Content */}

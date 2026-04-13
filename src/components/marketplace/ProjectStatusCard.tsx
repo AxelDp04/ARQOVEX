@@ -14,9 +14,10 @@ interface ProjectStatusCardProps {
     plano: Plano;
     onEdit?: (plano: Plano) => void;
     onDelete?: (id: string) => void;
+    categoriaSocio?: 'arquitectura' | 'inmobiliaria';
 }
 
-export default function ProjectStatusCard({ plano, onEdit, onDelete }: ProjectStatusCardProps) {
+export default function ProjectStatusCard({ plano, onEdit, onDelete, categoriaSocio }: ProjectStatusCardProps) {
     const [showOptions, setShowOptions] = useState(false);
 
     const statusConfig = {
@@ -124,7 +125,8 @@ export default function ProjectStatusCard({ plano, onEdit, onDelete }: ProjectSt
                                         }}
                                         className="w-full flex items-center gap-3 px-4 py-2 text-xs text-white hover:bg-white/5 rounded-lg transition-colors"
                                     >
-                                        <Edit className="w-4 h-4 text-brand-blue" /> Editar Proyecto
+                                        <Edit className={`w-4 h-4 ${categoriaSocio === 'inmobiliaria' ? 'text-amber-500' : 'text-brand-blue'}`} /> 
+                                        {categoriaSocio === 'inmobiliaria' ? "Editar Inmueble" : "Editar Diseño"}
                                     </button>
                                     <button 
                                         onClick={() => {
