@@ -235,7 +235,8 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
 
             // 1. Upload Principal Image if changed
             if (portada) {
-                const imgPath = `proyectos/${userId}/${Date.now()}-${portada.name}`;
+                const ext = portada.name.split('.').pop();
+                const imgPath = `proyectos/${userId}/${Date.now()}-portada.${ext}`;
                 const { error: uploadImgError } = await supabase.storage
                     .from("planos-files")
                     .upload(imgPath, portada);
@@ -258,9 +259,11 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
 
             // 2. Upload Technical File if changed
             if (archivoTecnico) {
-                archivoPath = `privado/${userId}/${Date.now()}-${archivoTecnico.name}`;
-                const { error: uploadFileError } = await supabase.storage.from("planos-privados").upload(archivoPath, archivoTecnico);
+                const ext = archivoTecnico.name.split('.').pop();
+                const archivoPathClean = `privado/${userId}/${Date.now()}-tecnico.${ext}`;
+                const { error: uploadFileError } = await supabase.storage.from("planos-privados").upload(archivoPathClean, archivoTecnico);
                 if (uploadFileError) throw uploadFileError;
+                archivoPath = archivoPathClean;
             }
 
             // 3. Insert or Update planos
@@ -295,7 +298,8 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
 
                 if (galeria.length > 0 && newPlano) {
                     const galleryPromises = galeria.map(async (file, idx) => {
-                        const path = `galeria/${newPlano.id}/${idx}-${file.name}`;
+                        const ext = file.name.split('.').pop();
+                        const path = `galeria/${newPlano.id}/${idx}-${Date.now()}.${ext}`;
                         await supabase.storage.from("planos-files").upload(path, file);
                         const { data: { publicUrl } } = supabase.storage.from("planos-files").getPublicUrl(path);
                         return { plano_id: newPlano.id, imagen_url: publicUrl };
