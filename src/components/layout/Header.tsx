@@ -89,7 +89,7 @@ export default function Header() {
             <div className="container-section">
                 <div className="flex items-center justify-between h-16 md:h-20">
                     {/* Logo */}
-                    <Link href="/" className="flex items-center gap-3 group">
+                    <Link href="/" className="flex items-center gap-0 group">
                         <div className="relative w-9 h-9 md:w-11 md:h-11 transition-transform duration-300 group-hover:scale-110">
                             <Image
                                 src={LOGO_SRC}
@@ -101,8 +101,8 @@ export default function Header() {
                             />
                         </div>
                         <span className="font-display text-xl md:text-2xl font-bold tracking-tight">
-                            <span className="text-white">ARQO</span>
-                            <span className="text-brand-blue">VEX</span>
+                            <span className="text-white">ARQ</span>
+                            <span className="text-brand-blue">OVEX</span>
                         </span>
                     </Link>
 

@@ -4,6 +4,18 @@ import MainLayout from "@/components/layout/MainLayout";
 import CatalogoClient from "./CatalogoClient";
 import { createClient } from "@/lib/supabase/server";
 
+import { Metadata } from "next";
+
+export async function generateMetadata({ searchParams }: { searchParams: { seccion?: string } }): Promise<Metadata> {
+    const isInmobiliaria = searchParams.seccion === "inmobiliaria";
+    return {
+        title: isInmobiliaria ? "Propiedades Inmobiliarias" : "Planos Arquitectónicos",
+        description: isInmobiliaria 
+            ? "Explora nuestra exclusiva selección de casas, apartamentos y terrenos en la República Dominicana."
+            : "Encuentra el plano perfecto entre nuestra colección de diseños arquitectónicos profesionales.",
+    };
+}
+
 // Revalidar caché cada 60 segundos si es necesario para mantenerlo siempre rápido
 export const revalidate = 60;
 

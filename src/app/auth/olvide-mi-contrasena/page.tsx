@@ -68,6 +68,19 @@ export default function OlvideContrasenaPage() {
                                     Por favor, revisa tu bandeja de entrada.
                                 </p>
                             </div>
+                            <div className="space-y-4 pt-4 border-t border-white/5">
+                                <p className="text-xs text-gray-500 font-medium uppercase tracking-widest flex items-center justify-center gap-2">
+                                     ¿Problemas de conexión?
+                                </p>
+                                <Link 
+                                    href="/auth/recuperar" 
+                                    className="block p-4 rounded-xl bg-brand-blue/5 border border-brand-blue/20 hover:bg-brand-blue/10 transition-colors group"
+                                >
+                                    <p className="text-sm text-brand-blue font-bold group-hover:text-brand-blue-light">Usa nuestra herramienta de rescate</p>
+                                    <p className="text-[11px] text-gray-500 mt-1">Si el botón del correo no abre debido a tu red local.</p>
+                                </Link>
+                            </div>
+
                             <Link href="/auth/login" className="btn-primary w-full py-3.5 flex items-center justify-center gap-2">
                                 <ArrowLeft className="w-4 h-4" />
                                 Volver al Login
@@ -131,7 +144,7 @@ export default function OlvideContrasenaPage() {
                 
                 <div className="relative z-10 p-12 text-center space-y-6">
                     <div className="relative w-32 h-32 mx-auto animate-float">
-                        <Image src={LOGO_SRC} alt="ARQOVEX" fill sizes="100vw" className="object-contain drop-shadow-[0_0_40px_rgba(0,102,255,0.5)]" />
+                        <Image src={LOGO_SRC} alt="ARQOVEX" fill sizes="100vw" className="object-contain" />
                     </div>
                     <div className="space-y-2">
                         <h2 className="font-display text-2xl font-bold text-white">Blindaje ARQOVEX</h2>

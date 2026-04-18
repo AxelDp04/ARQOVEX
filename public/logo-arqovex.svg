@@ -1,0 +1,19 @@
+<svg width="1000" height="1000" viewBox="0 0 1000 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Shard Izquierdo (Plata/Gris) -->
+  <path d="M500 150L280 750H380L500 420V150Z" fill="#94A3B8"/>
+  <path d="M500 420L380 750H500V420Z" fill="#64748B"/>
+  
+  <!-- Shard Derecho (Azul) -->
+  <path d="M500 150L720 750H620L500 420V150Z" fill="#0066FF"/>
+  <path d="M500 420L620 750H500V420Z" fill="#0044CC"/>
+  
+  <!-- Swoosh Dinámico -->
+  <path d="M250 620C400 550 600 550 750 620C600 580 400 580 250 650V620Z" fill="url(#swoosh_grad)"/>
+  
+  <defs>
+    <linearGradient id="swoosh_grad" x1="250" y1="620" x2="750" y2="620" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0066FF"/>
+      <stop offset="1" stop-color="#0044CC"/>
+    </linearGradient>
+  </defs>
+</svg>

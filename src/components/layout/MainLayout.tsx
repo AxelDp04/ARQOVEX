@@ -14,12 +14,12 @@ interface MainLayoutProps {
 export default function MainLayout({ children }: MainLayoutProps) {
     return (
         <>
-            <Header />
+            <div className="print:hidden"><Header /></div>
             <main className="min-h-screen bg-[var(--page-bg)]">{children}</main>
-            <Footer />
-            <WhatsAppFloating />
-            <AIConcierge />
-            <BottomNav />
+            <div className="print:hidden"><Footer /></div>
+            <div className="print:hidden"><WhatsAppFloating /></div>
+            <div className="print:hidden"><AIConcierge /></div>
+            <div className="print:hidden"><BottomNav /></div>
         </>
     );
 }

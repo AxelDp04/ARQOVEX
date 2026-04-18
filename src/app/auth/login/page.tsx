@@ -1,27 +1,29 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useTransition } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff, Loader2, ArrowRight, CheckCircle2 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 import { LOGO_SRC } from "@/lib/constants";
+import { loginAction } from "@/app/auth/actions";
+import { createClient } from "@/lib/supabase/client";
 
 function LoginForm() {
+    const router = useRouter();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
-    const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [isPending, startTransition] = useTransition();
     const [loadingGoogle, setLoadingGoogle] = useState(false);
-    const router = useRouter();
     const searchParams = useSearchParams();
-    const supabase = createClient();
     const resetSuccess = searchParams.get("reset") === "success";
 
+    // Google OAuth — still uses client-side redirect which is fine
     const handleGoogleLogin = async () => {
         setLoadingGoogle(true);
+        const supabase = createClient();
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
@@ -34,78 +36,33 @@ function LoginForm() {
         }
     };
 
-    useEffect(() => {
-        const checkRedirect = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            
-            if (user) {
-                const { data: profile } = await supabase
-                    .from('perfiles')
-                    .select('es_admin, role')
-                    .eq('id', user.id)
-                    .single();
-
-                const isAdminFromProfile = profile?.es_admin === true || profile?.role === 'admin';
-                
-                const hardcodedAdminEmails = ['axelp7223@gmail.com', 'arqovex@gmail.com', 'robertoficial69@hotmail.com'];
-                const isHardcodedAdmin = hardcodedAdminEmails.includes(user.email?.toLowerCase() || '');
-                
-                const isAdmin = isAdminFromProfile || isHardcodedAdmin;
-                
-                if (isAdmin) {
-                    router.push("/admin");
-                } else {
-                    router.push("/arquitectura");
-                }
-            }
-        };
-
-        if (typeof window !== 'undefined' && window.location.pathname === '/auth/login') {
-            checkRedirect();
-        }
-    }, [router, supabase]);
-
-    const handleLogin = async (e: React.FormEvent) => {
+    const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
         setError(null);
 
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const formData = new FormData();
+        formData.set('email', email);
+        formData.set('password', password);
 
-        if (error) {
-            setError("Credenciales incorrectas. Verifica tu email y contraseña.");
-            setLoading(false);
-        } else {
-            // Check if user is admin
-            const { data: { user } } = await supabase.auth.getUser();
-            
-            if (user) {
-                // Check profile for admin status
-                const { data: profile } = await supabase
-                    .from('perfiles')
-                    .select('es_admin, role')
-                    .eq('id', user.id)
-                    .single();
-
-                // Check multiple admin indicators
-                const isAdminFromProfile = profile?.es_admin === true || profile?.role === 'admin';
+        startTransition(async () => {
+            try {
+                console.log("Iniciando Server Action loginAction...");
+                const result = await loginAction(formData) as { error?: string; redirectUrl?: string };
+                console.log("Resultado de loginAction:", result);
                 
-                // Hardcoded admin override (CRITICAL)
-                const hardcodedAdminEmails = ['axelp7223@gmail.com', 'arqovex@gmail.com', 'robertoficial69@hotmail.com'];
-                const isHardcodedAdmin = hardcodedAdminEmails.includes(user.email?.toLowerCase() || '');
-                
-                const isAdmin = isAdminFromProfile || isHardcodedAdmin;
-                
-                if (isAdmin) {
-                    router.push("/admin");
-                } else {
-                    router.push("/arquitectura");
+                if (!result) {
+                    setError("Respuesta vacía del servidor.");
+                } else if (result.error) {
+                    setError(result.error);
+                } else if (result.redirectUrl) {
+                    console.log("Redirigiendo a:", result.redirectUrl);
+                    window.location.href = result.redirectUrl;
                 }
-            } else {
-                router.push("/arquitectura");
+            } catch (err: any) {
+                console.error("Excepción atrapada en loginAction:", err);
+                setError("Ocurrió un error inesperado de red.");
             }
-            router.refresh();
-        }
+        });
     };
 
     return (
@@ -184,7 +141,7 @@ function LoginForm() {
                         </div>
 
                         <div className="flex justify-end">
-                            <Link 
+                            <Link
                                 href="/auth/olvide-mi-contrasena"
                                 className="text-xs font-medium text-gray-500 hover:text-brand-blue-light transition-colors"
                             >
@@ -200,10 +157,10 @@ function LoginForm() {
 
                         <button
                             type="submit"
-                            disabled={loading}
+                            disabled={isPending}
                             className="btn-primary w-full py-3.5 mt-2"
                         >
-                            {loading ? (
+                            {isPending ? (
                                 <Loader2 className="w-5 h-5 animate-spin" />
                             ) : (
                                 <>
@@ -225,7 +182,7 @@ function LoginForm() {
                         <button
                             type="button"
                             onClick={handleGoogleLogin}
-                            disabled={loadingGoogle || loading}
+                            disabled={loadingGoogle || isPending}
                             className="w-full flex items-center justify-center gap-3 px-4 py-3.5 bg-white text-black font-bold rounded-xl hover:bg-gray-100 transition-all duration-300 transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed group"
                         >
                             {loadingGoogle ? (
@@ -233,22 +190,10 @@ function LoginForm() {
                             ) : (
                                 <>
                                     <svg className="w-5 h-5 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
-                                        <path
-                                            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                                            fill="#4285F4"
-                                        />
-                                        <path
-                                            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                                            fill="#34A853"
-                                        />
-                                        <path
-                                            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                                            fill="#FBBC05"
-                                        />
-                                        <path
-                                            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                                            fill="#EA4335"
-                                        />
+                                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                                     </svg>
                                     Continuar con Google
                                 </>
@@ -273,7 +218,7 @@ function LoginForm() {
 
                 <div className="relative z-10 p-12 text-center space-y-6">
                     <div className="relative w-32 h-32 mx-auto animate-float">
-                        <Image src={LOGO_SRC} alt="ARQOVEX" fill sizes="100vw" className="object-contain drop-shadow-[0_0_40px_rgba(0,102,255,0.5)]" />
+                        <Image src={LOGO_SRC} alt="ARQOVEX" fill sizes="100vw" className="object-contain" />
                     </div>
                     <div className="space-y-2">
                         <h2 className="font-display text-2xl font-bold text-white">ARQOVEX</h2>

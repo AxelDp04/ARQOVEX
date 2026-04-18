@@ -52,7 +52,12 @@ export async function GET(
             return NextResponse.json({ error: "No tienes acceso a este archivo o la compra no ha sido verificada." }, { status: 403 });
         }
 
-        // 3. Generate Signed URL (Expire in 1200 seconds = 20 minutes)
+        // 3. Check if it's an external link
+        if (technicalFilePath.startsWith('http')) {
+            return NextResponse.json({ url: technicalFilePath });
+        }
+
+        // 4. Generate Signed URL (Expire in 1200 seconds = 20 minutes)
         const { data, error: signedUrlError } = await supabase
             .storage
             .from("planos-privados")

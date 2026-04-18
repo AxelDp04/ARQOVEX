@@ -76,6 +76,14 @@ const nextConfig = {
             },
         ];
     },
+    async rewrites() {
+        return [
+            {
+                source: '/_supabase/:path*',
+                destination: 'https://rdbdwvwmnozumwtxdmra.supabase.co/:path*',
+            },
+        ];
+    },
     eslint: {
         ignoreDuringBuilds: true,
     },

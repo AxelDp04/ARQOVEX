@@ -188,14 +188,24 @@ export interface Payout {
     created_at: string
     vendedor?: Perfil
     venta?: {
+        id: string
+        plano_id: string
         monto_usd: number
         created_at: string
+        paypal_order_id?: string
         usuario?: {
             nombre_completo: string
             email: string
+            telefono?: string
         }
         plano: {
             titulo: string
+            seccion?: string
+            tipo_propiedad?: string
+            metros_cuadrados?: number
+            habitaciones?: number
+            banos?: number
+            parqueos?: number
         }
     }
     comprobante_url?: string

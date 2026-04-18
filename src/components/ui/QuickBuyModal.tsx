@@ -15,7 +15,10 @@ interface QuickBuyModalProps {
 }
 
 function formatPrice(price: number): string {
-    return "US$ " + new Intl.NumberFormat("en-US", { minimumFractionDigits: 0 }).format(price);
+    return "US$ " + new Intl.NumberFormat("en-US", { 
+        minimumFractionDigits: price % 1 === 0 ? 0 : 2,
+        maximumFractionDigits: 2
+    }).format(price);
 }
 
 export default function QuickBuyModal({ plano, isOpen, onClose }: QuickBuyModalProps) {

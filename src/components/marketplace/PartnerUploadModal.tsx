@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
     Plus, Upload, Save, AlertCircle, MapPin, FileText, FileUp,
     Pencil, CheckCircle, X, Images, ArrowLeft, ArrowRight, Loader2,
-    DollarSign
+    DollarSign, Link as LinkIcon
 } from "lucide-react";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
@@ -30,6 +30,7 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
     const [categorias, setCategorias] = useState<Categoria[]>([]);
     
     const isEditMode = !!plano;
+    const MAX_SUPABASE_SIZE = 48 * 1024 * 1024; // 48MB safety limit for Free Tier (50MB)
 
     // Form State
     const [formData, setFormData] = useState({
@@ -45,7 +46,8 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
         tipo_propiedad: "Plano Arquitectónico",
         video_url: "",
         enlace_mapa: "",
-        iframe_mapa: ""
+        iframe_mapa: "",
+        url_archivo_externo: ""
     });
 
     const [portada, setPortada] = useState<File | null>(null);
@@ -71,7 +73,8 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
                 tipo_propiedad: plano.tipo_propiedad || "Plano Arquitectónico",
                 video_url: plano.video_url || "",
                 enlace_mapa: plano.enlace_mapa || "",
-                iframe_mapa: plano.iframe_mapa || ""
+                iframe_mapa: plano.iframe_mapa || "",
+                url_archivo_externo: (plano.url_archivo?.startsWith('http')) ? plano.url_archivo : ""
             });
             setImgPrincipalPreview(plano.imagen_url || "");
             setDisplayPrecio(plano.precio ? plano.precio.toLocaleString("en-US") : "");
@@ -91,7 +94,8 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
                 tipo_propiedad: "Plano Arquitectónico",
                 video_url: "",
                 enlace_mapa: "",
-                iframe_mapa: ""
+                iframe_mapa: "",
+                url_archivo_externo: ""
             });
             setImgPrincipalPreview("");
             setDisplayPrecio("");
@@ -127,15 +131,13 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
     };
 
     const handlePrecioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const rawValue = e.target.value.replace(/\D/g, "");
-        if (!rawValue) {
-            setDisplayPrecio("");
-            setFormData(prev => ({...prev, precio: 0}));
-            return;
+        const val = e.target.value;
+        // Permite números y un solo punto decimal
+        if (val === '' || /^\d*\.?\d*$/.test(val)) {
+            setDisplayPrecio(val);
+            const num = parseFloat(val);
+            setFormData(prev => ({...prev, precio: isNaN(num) ? 0 : num}));
         }
-        const num = parseInt(rawValue, 10);
-        setDisplayPrecio(num.toLocaleString("en-US"));
-        setFormData(prev => ({...prev, precio: num}));
     };
 
     const validateImageResolution = (file: File) => {
@@ -153,6 +155,13 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
     const handleImgPrincipalChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files?.[0]) {
             const file = e.target.files[0];
+            
+            // Validation for size (Web images should never be > 50MB)
+            if (file.size > 15 * 1024 * 1024) {
+                alert(`⚠️ IMAGEN DEMASIADO PESADA: Esta imagen mide ${(file.size / (1024 * 1024)).toFixed(1)}MB. Para que el sitio cargue rápido y profesionalmente, por favor optimízala (máx 10-15MB).`);
+                return;
+            }
+
             const dims = await validateImageResolution(file);
             
             if (dims.width < 1200) {
@@ -173,6 +182,14 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
     const handleGaleriaChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
             const files = Array.from(e.target.files);
+            
+            // Check sizes for gallery images
+            const oversized = files.filter(f => f.size > 15 * 1024 * 1024);
+            if (oversized.length > 0) {
+                alert(`⚠️ GALERÍA MUY PESADA: Algunas imágenes exceden los 15MB. Por favor, optimízalas antes de subirlas para garantizar una buena experiencia de usuario.`);
+                return;
+            }
+
             setGaleria((prev: File[]) => [...prev, ...files]);
             
             if (files.length > 0) {
@@ -186,7 +203,14 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
 
     const handleArchivoTecnicoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files?.[0]) {
-            setArchivoTecnico(e.target.files[0]);
+            const file = e.target.files[0];
+            if (file.size > MAX_SUPABASE_SIZE) {
+                alert(`⚠️ ARCHIVO MUY PESADO: Este archivo mide ${(file.size / (1024 * 1024)).toFixed(1)}MB. Supabase limita las cargas gratuitas a 50MB. \n\nPor favor, usa la opción de "Enlace Externo" para este archivo o comprímelo.`);
+                return;
+            }
+            setArchivoTecnico(file);
+            // Clear external link if file is uploaded
+            setFormData(prev => ({ ...prev, url_archivo_externo: "" }));
         }
     };
 
@@ -202,12 +226,12 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
             }
 
             // Arquitectos must upload technical file (Strictly mandatory for designs)
-            if (!isEditMode && categoriaSocio === 'arquitectura' && !archivoTecnico) {
-                throw new Error("Como arquitecto, DEBES subir el archivo técnico (PDF o ZIP de los planos) para finalizar la publicación.");
+            if (!isEditMode && categoriaSocio === 'arquitectura' && !archivoTecnico && !formData.url_archivo_externo) {
+                throw new Error("Como arquitecto, DEBES subir el archivo técnico o proporcionar un enlace externo (Drive) para finalizar.");
             }
 
             let portadaUrl = plano?.imagen_url || "";
-            let archivoPath = plano?.url_archivo || "";
+            let archivoPath = formData.url_archivo_externo || plano?.url_archivo || "";
 
             // 1. Upload Principal Image if changed
             if (portada) {
@@ -240,8 +264,11 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
             }
 
             // 3. Insert or Update planos
+            // Clean formData to only send database-valid columns
+            const { url_archivo_externo, ...cleanFormData } = formData;
+
             const dataToSave = {
-                ...formData,
+                ...cleanFormData,
                 imagen_url: portadaUrl,
                 video_url: videoUrl,
                 url_archivo: archivoPath,
@@ -640,8 +667,33 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
                                             <button className="btn-ghost py-2 px-4 text-xs font-bold border-orange-500/20 text-orange-400 hover:bg-orange-500/10">
                                                 {archivoTecnico ? "Cambiar" : "Elegir Archivo"}
                                             </button>
-                                            <input type="file" onChange={handleArchivoTecnicoChange} className="absolute inset-0 opacity-0 cursor-pointer" />
+                                            <input 
+                                                type="file" 
+                                                accept=".pdf,.zip,.dwg,application/pdf,application/zip,application/x-dwg,image/dwg"
+                                                onChange={handleArchivoTecnicoChange} 
+                                                className="absolute inset-0 opacity-0 cursor-pointer" 
+                                            />
                                         </div>
+                                    </div>
+                                    
+                                    {/* External Link Option */}
+                                    <div className="space-y-4 pt-2">
+                                        <div className="flex items-center gap-2">
+                                            <LinkIcon className="w-4 h-4 text-brand-blue" />
+                                            <label className="text-[10px] uppercase font-bold text-gray-400 tracking-widest block">
+                                                O usar Enlace Externo (Para archivos {">"} 50MB)
+                                            </label>
+                                        </div>
+                                        <input 
+                                            name="url_archivo_externo" 
+                                            value={formData.url_archivo_externo} 
+                                            onChange={handleInputChange}
+                                            placeholder="https://drive.google.com/..." 
+                                            className="input-field py-3 text-sm"
+                                        />
+                                        <p className="text-[9px] text-gray-500 italic">
+                                            Si tu archivo técnico es muy pesado, súbelo a Google Drive/Mega y pega el link aquí.
+                                        </p>
                                     </div>
                                 </div>
                             </motion.div>
@@ -689,8 +741,8 @@ export default function PartnerUploadModal({ isOpen, onClose, onSuccess, userId,
                                             {!isEditMode && <li className="flex justify-between text-sm"><span className="text-gray-500">GALERÍA:</span> <span className="text-emerald-400">{galeria.length} FOTOS</span></li>}
                                             <li className="flex justify-between text-sm">
                                                 <span className="text-gray-500">TÉCNICO:</span> 
-                                                <span className={(archivoTecnico || (isEditMode && plano.url_archivo)) ? "text-emerald-400" : "text-gray-500"}>
-                                                    {(archivoTecnico || (isEditMode && plano.url_archivo)) ? "✓ LISTO" : "NO INCLUIDO"}
+                                                <span className={(archivoTecnico || formData.url_archivo_externo || (isEditMode && plano.url_archivo)) ? "text-emerald-400" : "text-gray-500"}>
+                                                    {(archivoTecnico || formData.url_archivo_externo || (isEditMode && plano.url_archivo)) ? "✓ LISTO" : "NO INCLUIDO"}
                                                 </span>
                                             </li>
                                         </ul>

@@ -20,7 +20,8 @@ import CitasForm from "@/components/ui/CitasForm";
 
 function formatPrice(price: number): string {
     return "US$ " + new Intl.NumberFormat("en-US", {
-        minimumFractionDigits: 0,
+        minimumFractionDigits: price % 1 === 0 ? 0 : 2,
+        maximumFractionDigits: 2
     }).format(price);
 }
 
@@ -165,24 +166,27 @@ export default function PlanoDetailClient({
     };
 
     const handleDownload = async () => {
-        if (!plano || !plano.url_archivo) {
-            alert("Este archivo aún no está disponible para descarga.");
+        if (!plano) {
+            alert("Información del plano no disponible.");
             return;
         }
 
         setActionLoading(true);
-        const { data, error } = await supabase
-            .storage
-            .from('planos-privados')
-            .createSignedUrl(plano.url_archivo, 60);
+        try {
+            const response = await fetch(`/api/download/${plano.id}`);
+            const data = await response.json();
 
-        if (error) {
-            console.error("Error creating signed URL:", error);
-            alert("No se pudo obtener el enlace de descarga. Contacta a soporte.");
-        } else if (data?.signedUrl) {
-            window.open(data.signedUrl, '_blank');
+            if (data.error) {
+                alert(`Error: ${data.error}`);
+            } else if (data.url) {
+                window.open(data.url, '_blank');
+            }
+        } catch (err) {
+            console.error("Error during download request:", err);
+            alert("No se pudo procesar la descarga. Contacta a soporte.");
+        } finally {
+            setActionLoading(false);
         }
-        setActionLoading(false);
     };
 
     const nextImage = () => {

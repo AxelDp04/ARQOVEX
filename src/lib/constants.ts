@@ -2,7 +2,7 @@
  * Ruta del logo en la app (carpeta public).
  * Si cambias el archivo del logo en public, actualiza este valor.
  */
-export const LOGO_SRC = "/Logo-nuevo.png";
+export const LOGO_SRC = "/logotrasnparente.png";
 
 /** URL base del sitio (para emails y enlaces absolutos al logo). */
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://arqovex.vercel.app";

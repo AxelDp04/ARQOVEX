@@ -26,8 +26,8 @@ export default async function HomePage() {
     <MainLayout>
       <HeroSection />
       <StatsSection />
-      <FeaturesSection />
       <FeaturedPlansSection initialPlanos={featuredPlanos || []} />
+      <FeaturesSection />
       <TestimonialsSection />
       <CTASection />
     </MainLayout>

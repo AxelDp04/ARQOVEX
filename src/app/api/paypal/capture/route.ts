@@ -69,8 +69,8 @@ export async function POST(req: Request) {
         if (captureData.status === "COMPLETED") {
             const supabase = await createClient();
 
-            // Record the sale in ventas_planos
-            const { error: dbError } = await supabase
+            // 1. Record the sale in ventas_planos
+            const { data: saleData, error: dbError } = await supabase
                 .from("ventas_planos")
                 .insert([{
                     usuario_id: userID,
@@ -79,7 +79,9 @@ export async function POST(req: Request) {
                     paypal_order_id: orderID,
                     estado_pago: "COMPLETADO",
                     descarga_habilitada: true
-                }]);
+                }])
+                .select()
+                .single();
 
             if (dbError) {
                 console.error("Error al registrar venta en Supabase:", dbError);
@@ -88,6 +90,53 @@ export async function POST(req: Request) {
                     warning: "Pago capturado pero error al registrar en DB",
                     dbError 
                 });
+            }
+
+            // 2. SURGICAL AUTOMATION: Create the Payout Request for the Socio
+            try {
+                // Get the Seller ID from the Plan
+                const { data: planoData } = await supabase
+                    .from("planos")
+                    .select("vendedor_id")
+                    .eq("id", planoID)
+                    .single();
+
+                if (planoData?.vendedor_id) {
+                    // Get Seller payout preferences from their profile
+                    const { data: profile } = await supabase
+                        .from("perfiles")
+                        .select("*")
+                        .eq("id", planoData.vendedor_id)
+                        .single();
+
+                    if (profile) {
+                        // Calculate payout (85%) - Precise for micro-transactions
+                        const payoutAmount = Number((monto * 0.85).toFixed(4));
+                        
+                        // Construct payout method info
+                        const metodoInfo = {
+                            metodo: profile.metodo_pago || 'paypal',
+                            paypal: profile.paypal_email,
+                            banco: profile.banco_nombre,
+                            cuenta: profile.banco_numero_cuenta,
+                            cedula: profile.cedula_identidad
+                        };
+
+                        // Insert into payouts_queue
+                        await supabase
+                            .from("payouts_queue")
+                            .insert([{
+                                venta_id: saleData.id,
+                                vendedor_id: planoData.vendedor_id,
+                                monto_payout: payoutAmount,
+                                estado: "pendiente",
+                                metodo_usado: metodoInfo
+                            }]);
+                    }
+                }
+            } catch (automationError) {
+                console.error("Surgical Automation Error [Payout Creation]:", automationError);
+                // We don't block the response since the sale was successful
             }
 
             return NextResponse.json({ status: "COMPLETED" });

@@ -6,7 +6,7 @@ import {
     Loader2,
     ArrowLeft, X, Images,
     Trash2, Star, MessageSquare,
-    Building2, Bed, Bath, Car, 
+    Building2, Bed, Bath, Car, Maximize2,
     ShieldCheck, 
     ClipboardCheck, Users,
     Plus, Upload, Save, AlertCircle, MapPin, FileText, FileUp,
@@ -16,6 +16,7 @@ import {
 import MainLayout from "@/components/layout/MainLayout";
 import PartnerUploadModal from "@/components/marketplace/PartnerUploadModal";
 import { createClient } from "@/lib/supabase/client";
+import { LOGO_SRC } from "@/lib/constants";
 import type { Categoria, Plano, Resena, SolicitudSocio, SolicitudVendedor, Perfil, Payout } from "@/types";
 import Image from "next/image";
 import type { User } from "@supabase/supabase-js";
@@ -64,6 +65,7 @@ export default function AdminPage() {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [selectedPlanoForEdit, setSelectedPlanoForEdit] = useState<Plano | null>(null);
     const [uploadLoading, setUploadLoading] = useState(false);
+    const MAX_SUPABASE_SIZE = 48 * 1024 * 1024; // 48MB limit
     const [simplePlano, setSimplePlano] = useState({
         titulo: "",
         descripcion: "",
@@ -78,15 +80,27 @@ export default function AdminPage() {
         categoria_id: "",
         video_url: "",
         enlace_mapa: "",
-        iframe_mapa: ""
+        iframe_mapa: "",
+        url_archivo_externo: ""
     });
     const [portadaFile, setPortadaFile] = useState<File | null>(null);
     const [galleryFiles, setGalleryFiles] = useState<File[]>([]);
     const [pdfFile, setPdfFile] = useState<File | null>(null);
     const [videoFile, setVideoFile] = useState<File | null>(null);
     const [categorias, setCategorias] = useState<Categoria[]>([]);
+    const [displayPrecio, setDisplayPrecio] = useState("");
 
     // Form formatting helpers
+    const handlePrecioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value;
+        // Permite números y un solo punto decimal
+        if (val === '' || /^\d*\.?\d*$/.test(val)) {
+            setDisplayPrecio(val);
+            const num = parseFloat(val);
+            setSimplePlano(prev => ({...prev, precio: isNaN(num) ? "0" : val}));
+        }
+    };
+
     const formatCurrency = (val: string) => {
         const num = val.replace(/\D/g, "");
         if (!num) return "";
@@ -122,10 +136,21 @@ export default function AdminPage() {
     const fetchPayouts = useCallback(async () => {
         setPayoutLoading(true);
         try {
-            // Intento 1: Con toda la información unida (Venta, Plano, Comprador)
+            // Intento 1: Con toda la información unida (Venta, Plano Completo, Comprador Detallado)
             const { data, error } = await supabase
                 .from('payouts_queue')
-                .select('*, vendedor:perfiles(*), venta:ventas_planos!fk_payout_to_venta(*, plano:planos(titulo), usuario:perfiles(nombre_completo, email))')
+                .select(`
+                    *, 
+                    vendedor:perfiles(*), 
+                    venta:ventas_planos!fk_payout_to_venta(
+                        *, 
+                        plano:planos(
+                            titulo, seccion, tipo_propiedad, 
+                            metros_cuadrados, habitaciones, banos, parqueos
+                        ), 
+                        usuario:perfiles(nombre_completo, email, telefono)
+                    )
+                `)
                 .order('created_at', { ascending: false });
             
             if (error) {
@@ -724,7 +749,7 @@ export default function AdminPage() {
 
     return (
         <MainLayout>
-            <div className="pt-24 pb-16 min-h-screen">
+            <div className="pt-24 pb-16 min-h-screen print:hidden">
                 <div className="container-section max-w-6xl">
                     {/* Header */}
                     <div className="mb-8 flex items-center justify-between">
@@ -823,8 +848,14 @@ export default function AdminPage() {
                                                 <label className="text-[10px] font-bold text-brand-blue uppercase tracking-widest">Precio (US$)</label>
                                                 <input 
                                                     type="text"
-                                                    value={formatCurrency(simplePlano.precio)}
-                                                    onChange={e => setSimplePlano({...simplePlano, precio: e.target.value.replace(/\D/g, "")})}
+                                                    value={simplePlano.precio}
+                                                    onChange={e => {
+                                                        const val = e.target.value;
+                                                        // Permite números y un solo punto decimal
+                                                        if (val === '' || /^\d*\.?\d*$/.test(val)) {
+                                                            setSimplePlano({...simplePlano, precio: val});
+                                                        }
+                                                    }}
                                                     className="input-field py-4 font-mono text-brand-blue font-bold" placeholder="150,000"
                                                 />
                                             </div>
@@ -884,7 +915,14 @@ export default function AdminPage() {
                                                     </div>
                                                     <input 
                                                         type="file" accept="image/*" 
-                                                        onChange={e => setPortadaFile(e.target.files?.[0] || null)}
+                                                        onChange={e => {
+                                                            const file = e.target.files?.[0];
+                                                            if (file && file.size > MAX_SUPABASE_SIZE) {
+                                                                alert("La imagen de portada excede los 50MB. Por favor optimízala.");
+                                                                return;
+                                                            }
+                                                            setPortadaFile(file || null);
+                                                        }}
                                                         className="absolute inset-0 opacity-0 cursor-pointer" 
                                                     />
                                                 </div>
@@ -959,7 +997,14 @@ export default function AdminPage() {
                                                     </div>
                                                     <input 
                                                         type="file" accept="video/*" 
-                                                        onChange={e => setVideoFile(e.target.files?.[0] || null)}
+                                                        onChange={e => {
+                                                            const file = e.target.files?.[0];
+                                                            if (file && file.size > MAX_SUPABASE_SIZE) {
+                                                                alert("El video excede los 50MB. Súbelo a YouTube/Drive y pega el link.");
+                                                                return;
+                                                            }
+                                                            setVideoFile(file || null);
+                                                        }}
                                                         className="absolute inset-0 opacity-0 cursor-pointer" 
                                                     />
                                                 </div>
@@ -1045,6 +1090,10 @@ export default function AdminPage() {
                                                                     alert("Límite máximo de 10 fotos.");
                                                                     return;
                                                                 }
+                                                                if (files.some(f => f.size > MAX_SUPABASE_SIZE)) {
+                                                                    alert("Algunas imágenes de la galería exceden los 50MB.");
+                                                                    return;
+                                                                }
                                                                 setGalleryFiles(prev => [...prev, ...files]);
                                                             }}
                                                             className="absolute inset-0 opacity-0 cursor-pointer" 
@@ -1059,10 +1108,7 @@ export default function AdminPage() {
                                             {/* PDF Upload (Technical File) */}
                                             {simplePlano.seccion === 'planos' && (
                                                 <div className="space-y-4 animate-fade-in">
-                                                    <label className="text-[10px] font-bold text-amber-500 uppercase tracking-widest flex items-center gap-2">
-                                                        <FileText className="w-3 h-3" /> Plano Técnico (PDF Privado)
-                                                    </label>
-                                                    <div className="relative group h-[100px]">
+                                                    <div className="relative group min-h-[58px]">
                                                         <div className={`input-field h-full flex flex-col items-center justify-center gap-2 border-dashed transition-all cursor-pointer ${pdfFile ? 'border-amber-500/50 bg-amber-500/5' : 'border-white/20 hover:border-amber-500/50'}`}>
                                                             {pdfFile ? (
                                                                 <>
@@ -1072,14 +1118,37 @@ export default function AdminPage() {
                                                             ) : (
                                                                 <>
                                                                     <FileText className="w-6 h-6 text-gray-500" />
-                                                                    <p className="text-[10px] text-gray-500 font-bold uppercase text-center">Subir Archivo de Diseño <br/> (PDF / ZIP)</p>
+                                                                    <p className="text-[10px] text-gray-500 font-bold uppercase text-center">Subir Archivo de Diseño <br/> (PDF / ZIP / DWG)</p>
                                                                 </>
                                                             )}
                                                         </div>
                                                         <input 
-                                                            type="file" accept=".pdf,.zip" 
-                                                            onChange={e => setPdfFile(e.target.files?.[0] || null)}
+                                                            type="file" accept=".pdf,.zip,.dwg,application/pdf,application/zip,application/x-dwg,image/dwg" 
+                                                            onChange={e => {
+                                                                const file = e.target.files?.[0];
+                                                                if (file && file.size > MAX_SUPABASE_SIZE) {
+                                                                    alert(`⚠️ ARCHIVO MUY PESADO (${(file.size / 1048576).toFixed(1)}MB). Supabase limita a 50MB. Usa la opción de "Link Externo" abajo.`);
+                                                                    return;
+                                                                }
+                                                                setPdfFile(file || null);
+                                                                if (file) setSimplePlano(prev => ({...prev, url_archivo_externo: ""}));
+                                                            }}
                                                             className="absolute inset-0 opacity-0 cursor-pointer" 
+                                                        />
+                                                    </div>
+                                                    
+                                                    {/* Enlace Externo Section */}
+                                                    <div className="pt-2 space-y-2">
+                                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                                            <ExternalLink className="w-3 h-3 text-brand-blue" /> O Enlace Externo (Drive/Mega)
+                                                        </label>
+                                                        <input 
+                                                            value={simplePlano.url_archivo_externo}
+                                                            onChange={e => {
+                                                                setSimplePlano({...simplePlano, url_archivo_externo: e.target.value});
+                                                                if (e.target.value) setPdfFile(null);
+                                                            }}
+                                                            className="input-field py-2 text-xs" placeholder="https://drive.google.com/..."
                                                         />
                                                     </div>
                                                     <p className="text-[9px] text-gray-500 uppercase font-medium italic">Acceso restringido hasta confirmación de pago.</p>
@@ -1098,8 +1167,8 @@ export default function AdminPage() {
                                                         alert("Debes subir al menos 3 fotos para la galería.");
                                                         return;
                                                     }
-                                                    if (simplePlano.seccion === 'planos' && !pdfFile) {
-                                                        alert("Para proyectos de ARQUITECTURA es obligatorio subir el Plano Técnico (PDF).");
+                                                    if (simplePlano.seccion === 'planos' && !pdfFile && !simplePlano.url_archivo_externo) {
+                                                        alert("Para proyectos de ARQUITECTURA es obligatorio subir el Plano Técnico o un Link Externo.");
                                                         return;
                                                     }
 
@@ -1109,7 +1178,7 @@ export default function AdminPage() {
 
                                                         // 1. Upload Portada
                                                         const portadaExt = portadaFile.name.split('.').pop();
-                                                        const portadaPath = `admin-uploads/${Date.now()}-portada.${portadaExt}`;
+                                                        const portadaPath = `proyectos/admin/${Date.now()}-portada.${portadaExt}`;
                                                         const { error: uploadError } = await supabase.storage
                                                             .from('planos-files')
                                                             .upload(portadaPath, portadaFile);
@@ -1143,10 +1212,12 @@ export default function AdminPage() {
                                                         }
 
                                                         // 3. Insert into planos
+                                                        const { url_archivo_externo: adminExtLink, ...cleanSimplePlano } = simplePlano;
+
                                                         const { data: insertData, error: insertError } = await supabase
                                                             .from('planos')
                                                             .insert([{
-                                                                ...simplePlano,
+                                                                ...cleanSimplePlano,
                                                                 precio: Number(simplePlano.precio),
                                                                 metros_cuadrados: Number(simplePlano.metros_cuadrados),
                                                                 habitaciones: Number(simplePlano.habitaciones),
@@ -1155,7 +1226,7 @@ export default function AdminPage() {
                                                                 vendedor_id: userId,
                                                                 imagen_url: portadaUrl,
                                                                 video_url: finalVideoUrl,
-                                                                url_archivo: pdfPath, // Private path if applicable
+                                                                url_archivo: pdfFile ? pdfPath : adminExtLink, // Private path or external URL
                                                                 estado_revision: 'publicado',
                                                                 disponible: true,
                                                                 estilo: 'Contemporáneo',
@@ -1170,7 +1241,7 @@ export default function AdminPage() {
                                                         if (galleryFiles.length > 0 && newPlano) {
                                                             const galleryPromises = galleryFiles.map(async (file, idx) => {
                                                                 const ext = file.name.split('.').pop();
-                                                                const path = `galeria/${newPlano.id}/${idx}-${Date.now()}.${ext}`;
+                                                                const path = `galeria/admin/${newPlano.id}/${idx}-${Date.now()}.${ext}`;
                                                                 await supabase.storage.from('planos-files').upload(path, file);
                                                                 const { data: { publicUrl } } = supabase.storage.from('planos-files').getPublicUrl(path);
                                                                 return { plano_id: newPlano.id, imagen_url: publicUrl };
@@ -1198,7 +1269,8 @@ export default function AdminPage() {
                                                             categoria_id: categorias[0]?.id || "",
                                                             video_url: "",
                                                             enlace_mapa: "",
-                                                            iframe_mapa: ""
+                                                            iframe_mapa: "",
+                                                            url_archivo_externo: ""
                                                         });
                                                         setPortadaFile(null);
                                                         setGalleryFiles([]);
@@ -1967,26 +2039,28 @@ export default function AdminPage() {
 
             {/* Modal de Edición Reutilizado */}
             {user && (
-                <PartnerUploadModal
-                    isOpen={isEditModalOpen}
-                    onClose={() => {
-                        setIsEditModalOpen(false);
-                        setSelectedPlanoForEdit(null);
-                    }}
-                    onSuccess={() => {
-                        fetchPlanos();
-                        setIsEditModalOpen(false);
-                        setSelectedPlanoForEdit(null);
-                    }}
-                    userId={user.id}
-                    plano={selectedPlanoForEdit}
-                    categoriaSocio={selectedPlanoForEdit?.tipo_propiedad?.toLowerCase().includes('inmueble') || selectedPlanoForEdit?.tipo_propiedad?.toLowerCase().includes('propiedad') ? 'inmobiliaria' : 'arquitectura'}
-                />
+                <div className="print:hidden">
+                    <PartnerUploadModal
+                        isOpen={isEditModalOpen}
+                        onClose={() => {
+                            setIsEditModalOpen(false);
+                            setSelectedPlanoForEdit(null);
+                        }}
+                        onSuccess={() => {
+                            fetchPlanos();
+                            setIsEditModalOpen(false);
+                            setSelectedPlanoForEdit(null);
+                        }}
+                        userId={user.id}
+                        plano={selectedPlanoForEdit}
+                        categoriaSocio={selectedPlanoForEdit?.tipo_propiedad?.toLowerCase().includes('inmueble') || selectedPlanoForEdit?.tipo_propiedad?.toLowerCase().includes('propiedad') ? 'inmobiliaria' : 'arquitectura'}
+                    />
+                </div>
             )}
 
             {/* Modal: Subir Evidencia de Pago */}
             {isEvidenceModalOpen && payoutForEvidence && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in print:hidden">
                     <div className="glass-card w-full max-w-lg p-8 space-y-6 relative border-brand-blue/30 shadow-2xl shadow-brand-blue/10">
                         <button onClick={() => setIsEvidenceModalOpen(false)} className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
                             <X className="w-6 h-6" />
@@ -2078,83 +2152,229 @@ export default function AdminPage() {
                 </div>
             )}
 
-            {/* Modal: Ver Recibo (Voucher) */}
+            {/* Modal: Ver Recibo (Voucher) - NIVEL DIOS */}
             {isVoucherModalOpen && activeVoucher && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fade-in">
-                    <div className="bg-white text-black w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl relative">
-                        {/* Cabecera del Voucher Style */}
-                        <div className="bg-[#001D3D] p-10 text-white relative">
-                            <div className="flex justify-between items-start">
-                                <div className="space-y-4">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-8 h-8 relative">
-                                            <Image src="/logo.png" alt="ARQOVEX" fill className="object-contain brightness-0 invert" />
+                <div id="printable-receipt" className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fade-in print:bg-white print:p-0">
+                    <div className="bg-white text-black w-full max-w-3xl rounded-[2.5rem] overflow-hidden shadow-2xl relative border border-gray-100 print:shadow-none print:rounded-none">
+                        
+                        {/* Cabecera Técnica del Voucher */}
+                        <div className="bg-[#001D3D] p-8 text-white relative overflow-hidden">
+                            {/* Decoración de fondo */}
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-brand-blue/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" />
+                            
+                            <div className="flex justify-between items-start relative z-10">
+                                <div className="space-y-6">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 relative">
+                                            <Image src={LOGO_SRC} alt="ARQOVEX" fill className="object-contain" />
                                         </div>
-                                        <span className="font-display text-xl font-bold tracking-tighter">ARQO<span className="text-[#0066FF]">VEX</span></span>
+                                        <div className="flex flex-col">
+                                            <span className="font-display text-2xl font-black tracking-tighter leading-none">ARQO<span className="text-brand-blue">VEX</span></span>
+                                            <span className="text-[8px] uppercase tracking-[0.4em] font-normal text-gray-400">Plataforma Tecnológica</span>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h2 className="text-3xl font-display font-black uppercase tracking-tighter italic">Comprobante de Pago</h2>
-                                        <p className="text-[10px] text-gray-400 uppercase font-black tracking-[0.3em]">Official Payout Voucher</p>
+                                    <div className="space-y-0.5">
+                                        <h2 className="text-2xl font-display font-black uppercase tracking-tighter italic leading-none text-white">Recibo Oficial</h2>
+                                        <p className="text-[9px] text-brand-blue font-black uppercase tracking-[0.4em]">Payout Voucher</p>
                                     </div>
                                 </div>
-                                <div className="text-right">
-                                    <p className="text-[9px] text-[#0066FF] font-black uppercase tracking-widest">ID Transacción</p>
-                                    <p className="text-sm font-mono font-bold">{activeVoucher.id.slice(0, 13).toUpperCase()}</p>
-                                    <p className="text-[10px] text-gray-500 mt-2">{activeVoucher.fecha_pago_realizada ? new Date(activeVoucher.fecha_pago_realizada).toLocaleString() : 'N/A'}</p>
+                                <div className="text-right space-y-2">
+                                    <div className="bg-white/10 backdrop-blur-md p-3 rounded-xl border border-white/10 inline-block">
+                                        <p className="text-[9px] text-brand-blue font-black uppercase tracking-widest mb-1">ID Transacción</p>
+                                        <p className="text-base font-mono font-bold">{activeVoucher.id.toUpperCase()}</p>
+                                    </div>
+                                    <div className="flex flex-col items-end gap-1">
+                                        <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Fecha de Emisión</p>
+                                        <p className="text-xs font-bold">{activeVoucher.fecha_pago_realizada ? new Date(activeVoucher.fecha_pago_realizada).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : new Date(activeVoucher.created_at).toLocaleString()}</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="p-10 space-y-10">
-                            <div className="grid grid-cols-2 gap-12">
+                        <div className="p-8 print:p-6 space-y-8 print:space-y-4 custom-scrollbar max-h-[65vh] overflow-y-auto print:max-h-none print:overflow-visible">
+                            
+                            {/* Sección 1: Participantes (Comprador y Vendedor) */}
+                            <div className="grid grid-cols-2 gap-8 print:gap-4 border-b border-gray-100 pb-4 print:pb-2">
                                 <div className="space-y-4">
-                                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-1 block">Beneficiario</label>
+                                    <div className="flex items-center gap-2 text-brand-blue">
+                                        <Users className="w-4 h-4" />
+                                        <label className="text-[9px] font-black uppercase tracking-widest block">Beneficiario (Socio)</label>
+                                    </div>
                                     <div className="space-y-1">
-                                        <p className="font-bold text-lg">{activeVoucher.vendedor?.nombre_completo}</p>
-                                        <p className="text-xs text-gray-500">{activeVoucher.metodo_usado?.metodo?.toUpperCase()} - {activeVoucher.metodo_usado?.paypal || activeVoucher.metodo_usado?.cuenta}</p>
+                                        <p className="font-bold text-xl text-slate-900">{activeVoucher.vendedor?.nombre_completo}</p>
+                                        <p className="text-xs text-gray-500 font-medium">Doc: {activeVoucher.metodo_usado?.cedula || "Identidad Verificada"}</p>
+                                        <p className="text-xs text-brand-blue font-black mt-2 bg-brand-blue/5 px-3 py-1 rounded-full w-fit">
+                                            {activeVoucher.metodo_usado?.metodo?.toUpperCase()}: {activeVoucher.metodo_usado?.paypal || activeVoucher.metodo_usado?.cuenta}
+                                        </p>
                                     </div>
                                 </div>
                                 <div className="space-y-4 text-right">
-                                    <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-1 block">Monto Liquidado</label>
+                                    <div className="flex items-center gap-2 text-gray-400 justify-end">
+                                        <label className="text-[9px] font-black uppercase tracking-widest block">Cliente (Comprador)</label>
+                                        <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                                    </div>
                                     <div className="space-y-1">
-                                        <p className="text-3xl font-black text-[#001D3D]">${activeVoucher.monto_payout.toFixed(2)} <span className="text-sm font-normal text-gray-400">USD</span></p>
-                                        <p className="text-[9px] text-emerald-600 font-bold uppercase italic">85% Neto del Socio</p>
+                                        <p className="font-bold text-lg text-slate-700">{activeVoucher.venta?.usuario?.nombre_completo || "Cliente Verificado"}</p>
+                                        <p className="text-xs text-gray-500">{activeVoucher.venta?.usuario?.email}</p>
+                                        <p className="text-xs text-gray-500">{activeVoucher.venta?.usuario?.telefono || "Telf. Protegido"}</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 space-y-4">
-                                <div className="flex items-center gap-3 text-gray-400">
-                                    <FileText className="w-4 h-4" />
-                                    <span className="text-[9px] font-black uppercase tracking-widest">Evidencia Adjunta</span>
+                            {/* Sección 2: Detalles del Producto Adquirido */}
+                            <div className="space-y-4 bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                                <div className="flex items-center justify-between">
+                                    <h4 className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] flex items-center gap-2">
+                                        <Building2 className="w-4 h-4 text-brand-blue" /> Detalles del Producto
+                                    </h4>
+                                    <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${activeVoucher.venta?.plano?.seccion === 'inmobiliaria' ? 'bg-amber-100 text-amber-700' : 'bg-brand-blue/10 text-brand-blue'}`}>
+                                        {activeVoucher.venta?.plano?.seccion?.toUpperCase() || 'ARQUITECTURA'}
+                                    </span>
+                                </div>
+                                
+                                <div className="flex gap-8 items-start">
+                                    <div className="flex-grow space-y-4">
+                                        <div>
+                                            <p className="text-lg font-black text-slate-800 leading-tight">{activeVoucher.venta?.plano?.titulo}</p>
+                                            <p className="text-xs text-gray-500 mt-1">{activeVoucher.venta?.plano?.tipo_propiedad || "Plano Arquitectónico Premium"}</p>
+                                        </div>
+                                        
+                                        <div className="flex gap-4">
+                                            <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200">
+                                                <Maximize2 className="w-3 h-3 text-brand-blue" />
+                                                <span className="text-[10px] font-bold text-slate-600">{activeVoucher.venta?.plano?.metros_cuadrados}m²</span>
+                                            </div>
+                                            {activeVoucher.venta?.plano?.habitaciones && (
+                                                <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200">
+                                                    <Bed className="w-3 h-3 text-brand-blue" />
+                                                    <span className="text-[10px] font-bold text-slate-600">{activeVoucher.venta?.plano?.habitaciones} Hab.</span>
+                                                </div>
+                                            )}
+                                            {activeVoucher.venta?.plano?.parqueos && (
+                                                <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200">
+                                                    <Car className="w-3 h-3 text-brand-blue" />
+                                                    <span className="text-[10px] font-bold text-slate-600">{activeVoucher.venta?.plano?.parqueos} Pq.</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-[9px] text-gray-400 uppercase font-black tracking-widest mb-1">ID Producto</p>
+                                        <p className="text-[10px] font-mono font-bold text-slate-700">{activeVoucher.venta?.plano_id?.slice(0, 18).toUpperCase() || "CATALOG-REF-001"}</p>
+                                        {activeVoucher.venta?.paypal_order_id && (
+                                            <>
+                                                <p className="text-[9px] text-gray-400 uppercase font-black tracking-widest mt-3 mb-1">Referencia PayPal</p>
+                                                <p className="text-[10px] font-mono font-bold text-brand-blue">{activeVoucher.venta.paypal_order_id}</p>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Sección 3: Liquidación Financiera Metódica */}
+                            <div className="space-y-6">
+                                <div className="flex items-center gap-2 text-brand-blue">
+                                    <DollarSign className="w-4 h-4" />
+                                    <label className="text-[9px] font-black uppercase tracking-widest block">Resumen Financiero de Liquidación</label>
+                                </div>
+                                
+                                <div className="overflow-hidden border border-slate-100 rounded-2xl shadow-sm">
+                                    <table className="w-full text-sm">
+                                        <thead>
+                                            <tr className="bg-slate-50 text-[9px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-100">
+                                                <th className="px-6 py-2 text-left">Concepto / Descripción</th>
+                                                <th className="px-6 py-2 text-center">Porcentaje (%)</th>
+                                                <th className="px-6 py-2 text-right">Monto (USD)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-50">
+                                            <tr>
+                                                <td className="px-6 py-2 font-bold text-slate-700">Precio de Venta</td>
+                                                <td className="px-6 py-2 text-center font-medium text-gray-400">100%</td>
+                                                <td className="px-6 py-2 text-right font-bold text-slate-900">${activeVoucher.venta?.monto_usd?.toFixed(2) || "0.00"}</td>
+                                            </tr>
+                                            <tr>
+                                                <td className="px-6 py-2">
+                                                    <p className="font-bold text-brand-blue">Tarifa ARQOVEX</p>
+                                                </td>
+                                                <td className="px-6 py-2 text-center font-bold text-brand-blue">15.00%</td>
+                                                <td className="px-6 py-2 text-right font-bold text-brand-blue">-${((activeVoucher.venta?.monto_usd || 0) * 0.15).toFixed(2)}</td>
+                                            </tr>
+                                            <tr className="bg-emerald-500/[0.03]">
+                                                <td className="px-6 py-3">
+                                                    <p className="font-black text-emerald-600 uppercase tracking-tighter">LIQUIDACIÓN AL SOCIO</p>
+                                                </td>
+                                                <td className="px-6 py-3 text-center font-black text-emerald-600">85.00%</td>
+                                                <td className="px-6 py-3 text-right font-black text-emerald-600 text-lg">${activeVoucher.monto_payout.toFixed(2)}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            {/* Evidencia de Transferencia */}
+                            <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3 text-slate-400">
+                                        <Image src={LOGO_SRC} alt="ARQOVEX" width={14} height={14} className="opacity-30" />
+                                        <span className="text-[9px] font-black uppercase tracking-widest">Evidencia de Payout</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                        <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Pago Verificado</span>
+                                    </div>
                                 </div>
                                 {activeVoucher.comprobante_url ? (
-                                    <div className="flex gap-4 items-center">
-                                        <div className="w-20 h-20 bg-white border border-gray-200 rounded-xl overflow-hidden relative group cursor-pointer shadow-sm">
+                                    <div className="flex gap-6 items-center">
+                                        <div className="w-20 h-20 bg-white border border-slate-200 rounded-2xl overflow-hidden relative group cursor-pointer shadow-md">
                                             <Image src={activeVoucher.comprobante_url} alt="Comprobante" fill className="object-cover" />
                                             <a href={activeVoucher.comprobante_url} target="_blank" rel="noopener noreferrer" className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                                                <ExternalLink className="w-4 h-4 text-white" />
+                                                <ExternalLink className="w-6 h-6 text-white" />
                                             </a>
                                         </div>
-                                        <div className="space-y-1">
-                                            <p className="text-xs font-bold text-gray-700">Digital Receipt Image</p>
-                                            <p className="text-[10px] text-gray-400 italic max-w-[300px] leading-relaxed">
-                                                &quot;{activeVoucher.notas_admin || "Sin notas adicionales."}&quot;
+                                        <div className="space-y-2">
+                                            <p className="text-xs font-black text-slate-800 uppercase tracking-tighter flex items-center gap-2">
+                                                <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                                                Digital Receipt ID Verified
                                             </p>
+                                            <div className="bg-white p-4 rounded-2xl border border-slate-200 max-w-[400px]">
+                                                <p className="text-[10px] text-slate-500 italic leading-relaxed">
+                                                    &quot;{activeVoucher.notas_admin || "Transacción completada exitosamente según las políticas vigentes de ARQOVEX."}&quot;
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
                                 ) : (
-                                    <p className="text-xs text-gray-400 italic">No se adjuntó comprobante visual.</p>
+                                    <div className="text-center py-4 text-gray-400 text-xs italic">No se adjuntó comprobante visual. Verificado por auditoría interna.</div>
                                 )}
                             </div>
 
-                            <div className="flex items-center justify-between pt-8 border-t border-gray-100">
-                                <div className="flex items-center gap-3 text-[9px] text-gray-400 font-bold uppercase tracking-[0.2em]">
-                                    <ShieldCheck className="w-4 h-4 text-[#0066FF]" /> Verified by ARQOVEX Finance
-                                </div>
-                                <div className="flex gap-2">
-                                    <button onClick={() => window.print()} className="px-5 py-2 rounded-full border border-gray-200 text-xs font-bold hover:bg-gray-50 transition-colors">Imprimir</button>
-                                    <button onClick={() => setIsVoucherModalOpen(false)} className="px-5 py-2 rounded-full bg-[#001D3D] text-white text-xs font-bold hover:bg-black transition-colors">Cerrar</button>
+                            {/* Footer del Documento */}
+                            <div className="flex flex-col items-center gap-4 pt-6 border-t border-gray-100">
+                                
+                                <div className="flex justify-between w-full items-center print:hidden">
+                                    <div className="flex items-center gap-3 text-[9px] text-gray-400 font-bold uppercase tracking-[0.2em]">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-brand-blue" />
+                                        Certified by ARQOVEX Finance Dept.
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <button 
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                window.print();
+                                            }} 
+                                            className="px-8 py-3 rounded-full border border-slate-200 text-xs font-black uppercase tracking-tighter hover:bg-slate-50 transition-all flex items-center gap-2"
+                                        >
+                                            Imprimir Documento
+                                        </button>
+                                        <button 
+                                            onClick={() => setIsVoucherModalOpen(false)} 
+                                            className="px-8 py-3 rounded-full bg-[#001D3D] text-white text-xs font-black uppercase tracking-tighter hover:bg-black transition-all shadow-xl shadow-blue-900/10"
+                                        >
+                                            Cerrar Recibo
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -33,31 +33,27 @@ export default function HeroSection() {
       {/* Dynamic Background Image */}
       <div className="absolute inset-0 z-0 overflow-hidden">
         {bgImage ? (
-          <div className="relative w-full h-full scale-110 animate-ken-burns">
+          <div className="relative w-full h-full scale-105 animate-ken-burns">
             <Image
               src={bgImage}
               alt="Featured Property"
               fill
-              className="object-cover opacity-40 grayscale-[20%]"
+              className="object-cover opacity-75 saturate-[1.2] brightness-[1.05] contrast-[1.02] object-center"
               priority
+              quality={100}
             />
           </div>
         ) : (
           <div className="absolute inset-0 bg-[#050810]" />
         )}
         
-        {/* Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#020408]/80 via-transparent to-[#020408]" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#020408] via-transparent to-transparent opacity-60" />
-        
-        {/* Grid pattern overlay */}
-        <div
-          className="absolute inset-0 opacity-[0.03] bg-grid-drift"
-          style={{
-            backgroundImage: `linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)`,
-            backgroundSize: "80px 80px",
-          }}
-        />
+        {/* Grain Texture for Professional Look */}
+        <div className="absolute inset-0 noise-bg mix-blend-soft-light opacity-20 pointer-events-none" />
+
+        {/* Overlays - Multi-layer for depth and readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#020408] via-transparent to-[#020408] opacity-90 transition-opacity duration-1000" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#1E293B] via-transparent to-transparent opacity-30" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#020408_100%)] opacity-50" />
       </div>
 
       <div className="container-section relative z-10 pt-24 pb-20">
@@ -69,13 +65,13 @@ export default function HeroSection() {
               </p>
               <div className="w-12 h-px bg-brand-blue" />
             </div>
-            <h1 className="font-display text-4xl sm:text-5xl md:text-6xl xl:text-7xl font-bold leading-[1.05] tracking-tight text-white">
+            <h1 className="font-display text-4xl sm:text-5xl md:text-6xl xl:text-7xl font-bold leading-[1.05] tracking-tight text-white text-balance">
               Excelencia en diseño{" "}
               <span className="bg-gradient-to-r from-[#0066FF] via-[#4D94FF] to-white bg-clip-text text-transparent">
                 y gestión inmobiliaria
               </span>
             </h1>
-            <p className="text-lg text-gray-400 max-w-md leading-relaxed">
+            <p className="text-lg text-gray-400 max-w-md leading-relaxed text-balance">
               Consultoría de ingeniería y arquitectura. Innovación y estándares técnicos en cada proyecto.
             </p>
             <div className="flex flex-wrap gap-4">
@@ -93,32 +89,23 @@ export default function HeroSection() {
                 Proyecto a medida
               </Link>
             </div>
-            <div className="flex items-center gap-8 pt-4 text-sm text-gray-500">
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-brand-blue animate-pulse" />
-                <span>Planos certificados</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-brand-blue animate-pulse" />
-                <span>Entrega inmediata</span>
-              </div>
-            </div>
           </div>
 
           <div className="relative flex justify-center lg:justify-end">
-            <div className="relative w-[280px] h-[280px] sm:w-[340px] sm:h-[340px] md:w-[420px] md:h-[420px] rounded-3xl border border-white/[0.08] bg-white/[0.02] flex items-center justify-center backdrop-blur-md animate-float shadow-[0_0_50px_rgba(0,102,255,0.15)] overflow-hidden">
+            <div className="relative w-[300px] h-[300px] sm:w-[340px] sm:h-[340px] md:w-[420px] md:h-[420px] rounded-[2rem] border border-white/[0.08] bg-white/[0.02] flex items-center justify-center backdrop-blur-md animate-float shadow-[0_0_80px_rgba(0,102,255,0.1)]">
               {/* Dynamic Aura */}
-              <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-[#0066FF]/20 to-transparent opacity-60 animate-pulse-blue" />
-              <div className="absolute -inset-10 bg-[#0066FF]/5 blur-3xl rounded-full opacity-40 animate-pulse" />
+              <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-[#0066FF]/20 to-transparent opacity-60 animate-pulse-blue" />
+              <div className="absolute -inset-16 bg-[#0066FF]/5 blur-[80px] rounded-full opacity-40 animate-pulse pointer-events-none" />
               
-              <div className="relative w-44 h-44 sm:w-56 sm:h-56 md:w-64 md:h-64 transition-transform duration-700 hover:scale-110">
+              <div className="relative w-48 h-48 sm:w-56 sm:h-56 md:w-64 md:h-64 transition-transform duration-700 hover:scale-110">
                 <Image
-                  src={LOGO_SRC}
+                  src="/Logo.png"
                   alt="ARQOVEX"
                   fill
-                  sizes="(max-width: 640px) 176px, (max-width: 768px) 224px, 256px"
-                  className="object-contain drop-shadow-[0_0_30px_rgba(0,102,255,0.3)]"
+                  sizes="(max-width: 640px) 192px, (max-width: 768px) 224px, 256px"
+                  className="object-contain"
                   priority
+                  quality={100}
                 />
               </div>
             </div>

@@ -219,15 +219,26 @@
   .bg-grid-drift {
     animation: bg-grid-drift 80s linear infinite;
   }
+
   @keyframes bg-grid-drift {
-    0% { background-position: 0 0; }
-    100% { background-position: 80px 80px; }
+    0% {
+      background-position: 0 0;
+    }
+
+    100% {
+      background-position: 80px 80px;
+    }
   }
 
   /* Animación Cinematográfica para Portada */
   @keyframes ken-burns {
-    0% { transform: scale(1) translate(0, 0); }
-    100% { transform: scale(1.15) translate(-2%, -1%); }
+    0% {
+      transform: scale(1) translate(0, 0);
+    }
+
+    100% {
+      transform: scale(1.15) translate(-2%, -1%);
+    }
   }
 
   .animate-ken-burns {
@@ -238,15 +249,16 @@
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
   }
+
   .hide-scrollbar {
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
   }
-  
+
   .mobile-scroll-container {
     @apply flex overflow-x-auto gap-6 pb-8 snap-x snap-mandatory hide-scrollbar -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:pb-0;
   }
-  
+
   .mobile-scroll-item {
     @apply flex-none w-[280px] sm:w-[320px] md:w-full snap-start;
   }
@@ -258,32 +270,109 @@
 
   /* Specific Animations */
   @keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
   }
+
   @keyframes slide-up {
-    from { transform: translate(-50%, 100%); opacity: 0; }
-    to { transform: translate(-50%, 0); opacity: 1; }
+    from {
+      transform: translate(-50%, 100%);
+      opacity: 0;
+    }
+
+    to {
+      transform: translate(-50%, 0);
+      opacity: 1;
+    }
   }
+
   @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-10px);
+    }
   }
+
   @keyframes pulse-blue {
-    0%, 100% { opacity: 0.6; transform: scale(1); }
-    50% { opacity: 0.8; transform: scale(1.05); }
+
+    0%,
+    100% {
+      opacity: 0.6;
+      transform: scale(1);
+    }
+
+    50% {
+      opacity: 0.8;
+      transform: scale(1.05);
+    }
   }
 
   .animate-fade-in {
     animation: fade-in 0.3s ease-out forwards;
   }
+
   .animate-slide-up {
     animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
+
   .animate-float {
     animation: float 6s ease-in-out infinite;
   }
+
   .animate-pulse-blue {
     animation: pulse-blue 4s ease-in-out infinite;
+  }
+}
+
+/* ── Print Isolation System (RESTORED & IMPROVED) ── */
+@media print {
+  @page { 
+    size: auto; 
+    margin: 5mm !important; 
+  }
+  
+  html, body {
+    background: #ffffff !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  .print\:hidden {
+    display: none !important;
+  }
+
+  #printable-receipt {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    z-index: 9999 !important;
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    transform: scale(0.92);
+    transform-origin: top center;
+  }
+
+  .custom-scrollbar {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 }

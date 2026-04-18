@@ -27,7 +27,7 @@ export default function WhatsAppFloating() {
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={handleClick}
-                    className="fixed bottom-6 right-6 z-[100] flex bg-emerald-500 text-white p-4 rounded-full shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)] transition-shadow group overflow-hidden border border-white/10"
+                    className="fixed bottom-6 right-6 z-[100] hidden md:flex bg-emerald-500 text-white p-4 rounded-full shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.6)] transition-shadow group overflow-hidden border border-white/10"
                 >
                     {/* Ripple effect background */}
                     <div className="absolute inset-0 bg-white/20 scale-0 group-hover:scale-150 transition-transform duration-700 rounded-full origin-center" />
