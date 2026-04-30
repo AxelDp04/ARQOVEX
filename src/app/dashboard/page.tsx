@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Heart, ShoppingBag, User, LogOut, Download, Loader2, ShieldCheck, Plus, Box, UploadCloud, ArrowUpRight, BarChart, TrendingUp, DollarSign, CheckCircle2, Building2, Clock, Home } from "lucide-react";
+import { Heart, ShoppingBag, User, LogOut, Download, Loader2, ShieldCheck, Plus, Box, UploadCloud, ArrowUpRight, BarChart, TrendingUp, DollarSign, CheckCircle2, Building2, Clock, Home, CreditCard, FileText, Printer, X, Receipt } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
 import PlanoCard from "@/components/ui/PlanoCard";
 import ProjectStatusCard from "@/components/marketplace/ProjectStatusCard";
@@ -14,7 +14,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import type { Plano, Perfil } from "@/types";
 
-type Tab = "adquisiciones" | "favoritos" | "perfil" | "vault";
+type Tab = "adquisiciones" | "favoritos" | "perfil" | "vault" | "historial";
 
 export default function DashboardPage() {
     const router = useRouter();
@@ -41,6 +41,9 @@ export default function DashboardPage() {
     const [planoEnEdicion, setPlanoEnEdicion] = useState<Plano | null>(null);
     const [statsSocio, setStatsSocio] = useState({ ventas: 0, ingresos: 0, leads: 0 });
     const [dashboardMode, setDashboardMode] = useState<'arquitectura' | 'inmobiliaria'>('arquitectura');
+    const [ventasHistory, setVentasHistory] = useState<any[]>([]);
+    const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+    const [selectedVenta, setSelectedVenta] = useState<any>(null);
 
     // Sync mode with profile or localStorage
     useEffect(() => {
@@ -128,8 +131,19 @@ export default function DashboardPage() {
                 const uniquePlanos = Array.from(new Map(allPlanos.map(item => [item.id, item])).values());
 
                 setAdquisiciones(uniquePlanos);
+
+                // Fetch Sales History (New)
+                const { data: historyData } = await supabase
+                    .from("ventas_planos")
+                    .select("*, plano:planos(titulo, id)")
+                    .eq("usuario_id", user.id)
+                    .order("created_at", { ascending: false });
+
+                if (historyData) {
+                    setVentasHistory(historyData);
+                }
             } catch (err) {
-                console.error("Fetch Exception [Adquisiciones]:", err);
+                console.error("Fetch Exception [Adquisiciones/History]:", err);
                 setAdquisiciones([]);
             }
 
@@ -203,6 +217,7 @@ export default function DashboardPage() {
 
     const tabs: { id: Tab; icon: React.ElementType; label: string; count?: number }[] = [
         { id: "adquisiciones", icon: ShoppingBag, label: "Mis Planos", count: adquisiciones.length },
+        { id: "historial", icon: CreditCard, label: "Pagos y Facturas" },
         { id: "favoritos", icon: Heart, label: "Favoritos", count: favoritos.length },
         { id: "perfil", icon: User, label: "Mi Perfil" },
     ];
@@ -337,6 +352,89 @@ export default function DashboardPage() {
                                             </button>
                                         </div>
                                     ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {activeTab === "historial" && (
+                        <div className="animate-fade-in space-y-6">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div>
+                                    <h2 className="font-display text-2xl font-bold text-white">Historial de Transacciones</h2>
+                                    <p className="text-gray-500 text-sm">Gestiona tus pagos y descarga tus facturas oficiales.</p>
+                                </div>
+                                <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                                    <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                                    Pagos Protegidos por SSL & PayPal
+                                </div>
+                            </div>
+
+                            {ventasHistory.length === 0 ? (
+                                <div className="text-center py-24 glass-card border-dashed">
+                                    <Receipt className="w-12 h-12 text-gray-700 mx-auto mb-4" />
+                                    <h3 className="font-display text-xl text-white">No hay transacciones registradas</h3>
+                                    <p className="text-gray-500">Cuando realices una compra, aparecerá aquí.</p>
+                                </div>
+                            ) : (
+                                <div className="glass-card overflow-hidden border-white/5">
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left border-collapse">
+                                            <thead>
+                                                <tr className="border-b border-white/5 bg-white/[0.02]">
+                                                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-500">Factura</th>
+                                                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-500">Proyecto</th>
+                                                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-500">Fecha</th>
+                                                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-500">Monto</th>
+                                                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-500">Estado</th>
+                                                    <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-500 text-right">Acciones</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-white/[0.03]">
+                                                {ventasHistory.map((venta) => (
+                                                    <tr key={venta.id} className="hover:bg-white/[0.02] transition-colors group">
+                                                        <td className="px-6 py-4">
+                                                            <span className="text-xs font-mono font-bold text-brand-blue">{venta.factura_numero || `INV-${venta.id.slice(0, 8)}`}</span>
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <div className="text-sm font-bold text-white group-hover:text-brand-blue transition-colors">
+                                                                {venta.plano?.titulo || "Plan Arquitectónico"}
+                                                            </div>
+                                                            <div className="text-[10px] text-gray-500 font-mono">ID: {venta.paypal_order_id || 'N/A'}</div>
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <div className="text-xs text-gray-400">
+                                                                {new Date(venta.created_at).toLocaleDateString("es-DO", { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <div className="text-sm font-black text-white italic">${venta.monto_usd || venta.precio_pagado} USD</div>
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter ${
+                                                                venta.estado_pago === 'COMPLETADO' 
+                                                                    ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' 
+                                                                    : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                                                            }`}>
+                                                                {venta.estado_pago || 'PAGADO'}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-right">
+                                                            <button 
+                                                                onClick={() => {
+                                                                    setSelectedVenta(venta);
+                                                                    setShowInvoiceModal(true);
+                                                                }}
+                                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-blue/10 border border-brand-blue/20 text-[10px] font-bold text-brand-blue hover:bg-brand-blue hover:text-white transition-all"
+                                                            >
+                                                                <FileText className="w-3 h-3" /> Ver Factura
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -520,6 +618,126 @@ export default function DashboardPage() {
                         plano={planoEnEdicion}
                         categoriaSocio={dashboardMode}
                     />
+                )}
+
+                {/* MODAL DE FACTURA SPECTACULAR */}
+                {showInvoiceModal && selectedVenta && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8 animate-fade-in">
+                        <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setShowInvoiceModal(false)}></div>
+                        
+                        <div className="relative w-full max-w-2xl bg-white rounded-3xl overflow-hidden shadow-2xl animate-scale-in">
+                            {/* Toolbar */}
+                            <div className="bg-gray-100 px-6 py-4 flex items-center justify-between border-b border-gray-200">
+                                <div className="flex items-center gap-2">
+                                    <Receipt className="w-5 h-5 text-gray-400" />
+                                    <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">Previsualización de Factura</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <button 
+                                        onClick={() => window.print()}
+                                        className="p-2 rounded-lg hover:bg-gray-200 text-gray-600 transition-colors"
+                                        title="Imprimir"
+                                    >
+                                        <Printer className="w-5 h-5" />
+                                    </button>
+                                    <button 
+                                        onClick={() => setShowInvoiceModal(false)}
+                                        className="p-2 rounded-lg hover:bg-red-50 text-red-500 transition-colors"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Factura Content - Printable Area */}
+                            <div id="printable-invoice" className="p-8 md:p-12 text-gray-800 bg-white min-h-[600px] flex flex-col">
+                                {/* Header Factura */}
+                                <div className="flex flex-col md:flex-row justify-between items-start gap-8 mb-12">
+                                    <div className="space-y-4">
+                                        <img src="/Logo.png" alt="ARQOVEX" className="h-10 w-auto brightness-0" />
+                                        <div className="text-xs text-gray-500 leading-relaxed">
+                                            <p className="font-bold text-gray-900">ARQOVEX INTERNACIONAL S.R.L</p>
+                                            <p>Santo Domingo, República Dominicana</p>
+                                            <p>info@arqovex.com | www.arqovex.com</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <h1 className="text-4xl font-black text-gray-900 italic tracking-tighter mb-1">FACTURA</h1>
+                                        <p className="text-brand-blue font-mono font-bold">{selectedVenta.factura_numero || `INV-${selectedVenta.id.slice(0, 8)}`}</p>
+                                        <div className="mt-4 text-xs text-gray-500">
+                                            <p>Fecha de Emisión: <span className="text-gray-900 font-bold">{new Date(selectedVenta.created_at).toLocaleDateString()}</span></p>
+                                            <p>Método: <span className="text-gray-900 font-bold">PayPal / Tarjeta</span></p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Bill To / Ship To */}
+                                <div className="grid grid-cols-2 gap-8 mb-12 py-8 border-y border-gray-100">
+                                    <div>
+                                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Cliente</h4>
+                                        <p className="font-bold text-gray-900">{perfil?.nombre_completo || user?.user_metadata?.full_name || 'Usuario Arqovex'}</p>
+                                        <p className="text-xs text-gray-500">{user?.email}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Estado del Pago</h4>
+                                        <span className="inline-block px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-black uppercase">
+                                            {selectedVenta.estado_pago || 'Completado'}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Items Table */}
+                                <div className="flex-grow">
+                                    <table className="w-full mb-8">
+                                        <thead>
+                                            <tr className="border-b-2 border-gray-900">
+                                                <th className="py-4 text-left text-[10px] font-black uppercase">Descripción del Producto</th>
+                                                <th className="py-4 text-center text-[10px] font-black uppercase">Cant.</th>
+                                                <th className="py-4 text-right text-[10px] font-black uppercase">Precio</th>
+                                                <th className="py-4 text-right text-[10px] font-black uppercase">Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-100">
+                                            <tr>
+                                                <td className="py-6">
+                                                    <p className="font-bold text-gray-900">{selectedVenta.plano?.titulo || "Plan Arquitectónico Digital"}</p>
+                                                    <p className="text-[10px] text-gray-500 mt-1">Licencia de uso profesional - Descarga digital inmediata.</p>
+                                                </td>
+                                                <td className="py-6 text-center font-medium">1</td>
+                                                <td className="py-6 text-right font-medium">${(selectedVenta.monto_usd || selectedVenta.precio_pagado).toFixed(2)}</td>
+                                                <td className="py-6 text-right font-bold text-gray-900">${(selectedVenta.monto_usd || selectedVenta.precio_pagado).toFixed(2)}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                {/* Totals */}
+                                <div className="flex justify-end pt-8 border-t-2 border-gray-900">
+                                    <div className="w-full max-w-[240px] space-y-3">
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-500">Subtotal</span>
+                                            <span className="font-bold text-gray-900">${(selectedVenta.monto_usd || selectedVenta.precio_pagado).toFixed(2)}</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-500">Impuestos (ITBIS 0%)</span>
+                                            <span className="font-bold text-gray-900">$0.00</span>
+                                        </div>
+                                        <div className="flex justify-between items-center pt-3 border-t border-gray-100">
+                                            <span className="text-xs font-black uppercase">Total Pagado</span>
+                                            <span className="text-2xl font-black text-brand-blue italic">${(selectedVenta.monto_usd || selectedVenta.precio_pagado).toFixed(2)} USD</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Footer Factura */}
+                                <div className="mt-16 pt-8 border-t border-gray-100 text-center">
+                                    <p className="text-[10px] text-gray-400 font-medium max-w-sm mx-auto">
+                                        Gracias por confiar en Arqovex. Esta es una factura generada digitalmente y es válida como comprobante de pago internacional.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 )}
             </div>
         </MainLayout>

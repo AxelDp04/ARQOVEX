@@ -11,7 +11,7 @@ import {
     ClipboardCheck, Users,
     Plus, Upload, Save, AlertCircle, MapPin, FileText, FileUp,
     Pencil, Eye, EyeOff,
-    DollarSign, CheckCircle2, Clock, LayoutDashboard, ExternalLink
+    DollarSign, CheckCircle2, Clock, LayoutDashboard, ExternalLink, TrendingUp, Receipt, Printer
 } from "lucide-react";
 import MainLayout from "@/components/layout/MainLayout";
 import PartnerUploadModal from "@/components/marketplace/PartnerUploadModal";
@@ -21,7 +21,7 @@ import type { Categoria, Plano, Resena, SolicitudSocio, SolicitudVendedor, Perfi
 import Image from "next/image";
 import type { User } from "@supabase/supabase-js";
 
-type Tab = 'dashboard' | 'planos' | 'socios' | 'auditoria' | 'comunidad' | 'pagos';
+type Tab = 'dashboard' | 'planos' | 'socios' | 'auditoria' | 'comunidad' | 'pagos' | 'ventas';
 
 export default function AdminPage() {
     const router = useRouter();
@@ -59,6 +59,10 @@ export default function AdminPage() {
     const [sociosAprobados, setSociosAprobados] = useState<SolicitudVendedor[]>([]);
     const [perfiles, setPerfiles] = useState<Perfil[]>([]);
     const [user, setUser] = useState<User | null>(null);
+    const [ventasGlobales, setVentasGlobales] = useState<any[]>([]);
+    const [ventasLoading, setVentasLoading] = useState(false);
+    const [selectedAdminVenta, setSelectedAdminVenta] = useState<any>(null);
+    const [showAdminInvoice, setShowAdminInvoice] = useState(false);
 
     // Simplied Upload Form State
     const [showSimpleForm, setShowSimpleForm] = useState(false);
@@ -170,6 +174,23 @@ export default function AdminPage() {
             console.error("Supabase Error [AdminFetchPayouts]:", error.message);
         } finally {
             setPayoutLoading(false);
+        }
+    }, [supabase]);
+
+    const fetchVentasGlobales = useCallback(async () => {
+        setVentasLoading(true);
+        try {
+            const { data, error } = await supabase
+                .from("ventas_planos")
+                .select("*, plano:planos(titulo, id), usuario:perfiles(nombre_completo, email)")
+                .order("created_at", { ascending: false });
+
+            if (error) throw error;
+            setVentasGlobales(data || []);
+        } catch (err) {
+            console.error("Error fetching global sales:", err);
+        } finally {
+            setVentasLoading(false);
         }
     }, [supabase]);
 
@@ -688,8 +709,10 @@ export default function AdminPage() {
         fetchSolicitudesVendedores();
         fetchSociosAprobados();
         fetchPerfiles();
+        fetchPerfiles();
         fetchPayouts();
-    }, [router, supabase, fetchPerfiles, fetchPlanos, fetchResenas, fetchSociosAprobados, fetchSolicitudes, fetchSolicitudesVendedores, fetchPayouts]);
+        fetchVentasGlobales();
+    }, [router, supabase, fetchPerfiles, fetchPlanos, fetchResenas, fetchSociosAprobados, fetchSolicitudes, fetchSolicitudesVendedores, fetchPayouts, fetchVentasGlobales]);
 
     const fetchCategorias = useCallback(async () => {
         const { data } = await supabase.from("categorias").select("*");
@@ -744,7 +767,8 @@ export default function AdminPage() {
         { id: 'socios', icon: Users, label: 'Socios', subLabel: 'Aprobaciones y Activos', count: solicitudes.filter(s => s.estado === 'pendiente').length + solicitudesVendedores.filter(s => s.estado === 'pendiente').length },
         { id: 'auditoria', icon: ClipboardCheck, label: 'Auditoría', subLabel: 'Calidad y Moderación', count: resenas.filter(r => !r.aprobado).length + planos.filter(p => p.estado_revision === 'en_revision').length },
         { id: 'comunidad', icon: Users, label: 'Comunidad', subLabel: 'Usuarios y Roles', count: perfiles.length },
-        { id: 'pagos', icon: DollarSign, label: 'Pagos', subLabel: 'Historial y Pendientes', count: payouts.filter(p => p.estado === 'pendiente').length },
+        { id: 'ventas', icon: DollarSign, label: 'Ventas', subLabel: 'Historial de Plataforma', count: ventasGlobales.length },
+        { id: 'pagos', icon: ClipboardCheck, label: 'Payouts', subLabel: 'Liquidación a Socios', count: payouts.filter(p => p.estado === 'pendiente').length },
     ];
 
     return (
@@ -1858,6 +1882,116 @@ export default function AdminPage() {
                         </div>
                     )}
 
+                    {activeTab === 'ventas' && (
+                        <div className="space-y-8 animate-fade-in">
+                            {/* Dashboard Financiero Admin */}
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <div className="glass-card p-6 bg-brand-gradient border-none relative overflow-hidden group">
+                                    <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:scale-110 transition-transform">
+                                        <TrendingUp className="w-12 h-12 text-white" />
+                                    </div>
+                                    <h3 className="text-white/70 text-[10px] font-black uppercase tracking-widest mb-1">Ingresos Brutos</h3>
+                                    <div className="text-3xl font-black text-white italic tracking-tighter">
+                                        ${ventasGlobales.reduce((acc, v) => acc + (v.monto_usd || v.precio_pagado || 0), 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                    </div>
+                                </div>
+                                <div className="glass-card p-6 border-white/5">
+                                    <h3 className="text-gray-500 text-[10px] font-black uppercase tracking-widest mb-1">Comisiones ARQOVEX (15%)</h3>
+                                    <div className="text-2xl font-black text-brand-blue italic tracking-tighter">
+                                        ${(ventasGlobales.reduce((acc, v) => acc + (v.monto_usd || v.precio_pagado || 0), 0) * 0.15).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                    </div>
+                                </div>
+                                <div className="glass-card p-6 border-white/5">
+                                    <h3 className="text-gray-500 text-[10px] font-black uppercase tracking-widest mb-1">Total de Ventas</h3>
+                                    <div className="text-2xl font-black text-white italic tracking-tighter">
+                                        {ventasGlobales.length} <span className="text-xs font-normal text-gray-500 uppercase not-italic ml-2">Transacciones</span>
+                                    </div>
+                                </div>
+                                <div className="glass-card p-6 border-white/5">
+                                    <h3 className="text-gray-500 text-[10px] font-black uppercase tracking-widest mb-1">Ventas de este Mes</h3>
+                                    <div className="text-2xl font-black text-emerald-400 italic tracking-tighter">
+                                        {ventasGlobales.filter(v => new Date(v.created_at).getMonth() === new Date().getMonth()).length}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="glass-card p-0 overflow-hidden border-white/5">
+                                <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
+                                    <h2 className="font-display text-xl font-bold text-white flex items-center gap-3">
+                                        <FileText className="w-6 h-6 text-brand-blue" />
+                                        Registro Maestro de Ventas
+                                    </h2>
+                                    <div className="flex items-center gap-2">
+                                        <button 
+                                            onClick={fetchVentasGlobales}
+                                            className="p-2 rounded-lg bg-white/5 text-gray-400 hover:text-white transition-colors"
+                                        >
+                                            <Loader2 className={`w-4 h-4 ${ventasLoading ? 'animate-spin' : ''}`} />
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left">
+                                        <thead>
+                                            <tr className="bg-white/[0.02] border-b border-white/5">
+                                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-500">Factura</th>
+                                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-500">Cliente / Comprador</th>
+                                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-500">Producto</th>
+                                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-500">Fecha</th>
+                                                <th className="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-gray-500">Monto Bruto</th>
+                                                <th className="px-6 py-4 text-right"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-white/[0.03]">
+                                            {ventasGlobales.map((venta) => (
+                                                <tr key={venta.id} className="hover:bg-white/[0.01] transition-colors group">
+                                                    <td className="px-6 py-4">
+                                                        <span className="text-xs font-mono font-bold text-brand-blue">
+                                                            {venta.factura_numero || `ARQ-${venta.id.slice(0, 8).toUpperCase()}`}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="text-sm font-bold text-white">{venta.usuario?.nombre_completo || "Desconocido"}</div>
+                                                        <div className="text-[10px] text-gray-500">{venta.usuario?.email}</div>
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="text-sm font-medium text-gray-300">{venta.plano?.titulo || "Proyecto"}</div>
+                                                        <div className="text-[9px] text-brand-blue-light font-mono italic">Ref: {venta.paypal_order_id || 'S/R'}</div>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-xs text-gray-500">
+                                                        {new Date(venta.created_at).toLocaleDateString()}
+                                                    </td>
+                                                    <td className="px-6 py-4">
+                                                        <div className="text-sm font-black text-white italic">
+                                                            ${(v => (v.monto_usd || v.precio_pagado || 0))(venta).toFixed(2)} USD
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right">
+                                                        <button 
+                                                            onClick={() => {
+                                                                setSelectedAdminVenta(venta);
+                                                                setShowAdminInvoice(true);
+                                                            }}
+                                                            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-brand-blue/10 border border-brand-blue/20 text-[10px] font-bold text-brand-blue hover:bg-brand-blue hover:text-white transition-all"
+                                                        >
+                                                            <Receipt className="w-3 h-3" /> Factura
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                    {ventasGlobales.length === 0 && (
+                                        <div className="py-20 text-center text-gray-500 font-display italic">
+                                            No se han registrado ventas aún en la plataforma.
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {activeTab === 'pagos' && (
                         <div className="space-y-8 animate-fade-in">
                             <div className="glass-card p-6">
@@ -2376,6 +2510,102 @@ export default function AdminPage() {
                                         </button>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Modal de Factura Administrativa */}
+            {showAdminInvoice && selectedAdminVenta && (
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fade-in print:bg-white print:p-0">
+                    <div className="relative w-full max-w-2xl bg-white rounded-3xl overflow-hidden shadow-2xl animate-scale-in print:shadow-none print:rounded-none">
+                        {/* Toolbar - Oculto en impresión */}
+                        <div className="bg-gray-100 px-6 py-4 flex items-center justify-between border-b border-gray-200 print:hidden">
+                            <div className="flex items-center gap-2">
+                                <ShieldCheck className="w-5 h-5 text-brand-blue" />
+                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Validación de Venta ARQOVEX</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button onClick={() => window.print()} className="p-2 rounded-lg hover:bg-gray-200 text-gray-600"><Printer className="w-5 h-5" /></button>
+                                <button onClick={() => setShowAdminInvoice(false)} className="p-2 rounded-lg hover:bg-red-50 text-red-500"><X className="w-5 h-5" /></button>
+                            </div>
+                        </div>
+
+                        {/* Contenido Factura */}
+                        <div className="p-10 text-gray-800 bg-white min-h-[600px] flex flex-col">
+                            <div className="flex justify-between items-start mb-12">
+                                <div>
+                                    <Image src={LOGO_SRC} alt="ARQOVEX" width={150} height={40} className="brightness-0 mb-4" />
+                                    <div className="text-[10px] text-gray-500 leading-relaxed uppercase tracking-wider font-bold">
+                                        <p>Plataforma de Ingeniería Global</p>
+                                        <p>RNC: 132-XXXXX-X</p>
+                                        <p>Santo Domingo, Rep. Dom.</p>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <h1 className="text-4xl font-black text-gray-900 italic tracking-tighter mb-1">FACTURA</h1>
+                                    <p className="text-brand-blue font-mono font-bold">{selectedAdminVenta.factura_numero || `ARQ-${selectedAdminVenta.id.slice(0, 8).toUpperCase()}`}</p>
+                                    <div className="mt-4 text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                                        <p>Fecha: <span className="text-gray-900">{new Date(selectedAdminVenta.created_at).toLocaleDateString()}</span></p>
+                                        <p>Ref: <span className="text-gray-900">{selectedAdminVenta.paypal_order_id || 'TRANS-DIRECTA'}</span></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-8 mb-12 py-8 border-y border-gray-100">
+                                <div>
+                                    <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3">Comprador</h4>
+                                    <p className="font-bold text-gray-900 text-lg">{selectedAdminVenta.usuario?.nombre_completo || "Usuario Verificado"}</p>
+                                    <p className="text-xs text-gray-500 font-medium">{selectedAdminVenta.usuario?.email}</p>
+                                </div>
+                                <div className="text-right">
+                                    <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3">Estado de Pago</h4>
+                                    <div className="flex justify-end">
+                                        <span className="px-3 py-1 rounded-lg bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest">
+                                            {selectedAdminVenta.estado_pago || 'Pagado'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex-grow">
+                                <table className="w-full">
+                                    <thead>
+                                        <tr className="border-b-2 border-gray-900">
+                                            <th className="py-4 text-left text-[10px] font-black uppercase tracking-widest">Descripción del Ítem</th>
+                                            <th className="py-4 text-right text-[10px] font-black uppercase tracking-widest">Total Bruto</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100">
+                                        <tr>
+                                            <td className="py-8">
+                                                <p className="font-black text-gray-900 text-xl tracking-tighter leading-none">{selectedAdminVenta.plano?.titulo || "Licencia Arqovex"}</p>
+                                                <p className="text-[10px] text-gray-500 mt-2 font-bold uppercase tracking-widest">Adquisición de propiedad digital / Licencia de uso</p>
+                                            </td>
+                                            <td className="py-8 text-right font-black text-2xl italic text-gray-900">
+                                                ${(selectedAdminVenta.monto_usd || selectedAdminVenta.precio_pagado || 0).toFixed(2)}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div className="flex justify-end pt-12 mt-12 border-t-2 border-gray-900">
+                                <div className="w-full max-w-[280px] space-y-4">
+                                    <div className="flex justify-between text-xs font-bold text-gray-500 uppercase">
+                                        <span>Subtotal Operación</span>
+                                        <span className="text-gray-900">${(selectedAdminVenta.monto_usd || 0).toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center py-4 px-5 bg-brand-blue rounded-2xl text-white shadow-xl shadow-brand-blue/20">
+                                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">Total Cobrado</span>
+                                        <span className="text-3xl font-black italic tracking-tighter leading-none">${(selectedAdminVenta.monto_usd || 0).toFixed(2)} <span className="text-xs not-italic font-normal opacity-70">USD</span></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mt-16 pt-8 border-t border-gray-100 flex justify-between items-center opacity-50 grayscale">
+                                <p className="text-[8px] font-bold uppercase tracking-widest">Sello Digital de Validación ARQOVEX SRL</p>
+                                <p className="text-[8px] font-mono font-bold tracking-tighter">HASH-AUTH: {selectedAdminVenta.id.toUpperCase()}</p>
                             </div>
                         </div>
                     </div>
