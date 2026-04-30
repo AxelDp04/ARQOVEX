@@ -10,14 +10,15 @@ const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
 export const metadata: Metadata = {
   applicationName: "ARQOVEX",
   title: {
-    default: "ARQOVEX",
+    default: "ARQOVEX | Planos y Consultoría de Ingeniería en RD",
     template: "%s | ARQOVEX",
   },
-  description: "Consultoría de Ingeniería y Arquitectura en la República Dominicana. Innovación y excelencia en proyectos inmobiliarios.",
+  description: "ARQOVEX: Expertos en planos arquitectónicos, consultoría de ingeniería y proyectos inmobiliarios en República Dominicana. Innovación, calidad y excelencia.",
+  keywords: ["arquitectura rd", "ingeniería dominicana", "planos de casas", "proyectos inmobiliarios", "consultoría ingeniería", "arqovex"],
   openGraph: {
     siteName: "ARQOVEX",
-    title: "ARQOVEX",
-    description: "Consultoría de Ingeniería y Arquitectura en la República Dominicana.",
+    title: "ARQOVEX | Ingeniería y Arquitectura",
+    description: "Expertos en consultoría de ingeniería y planos arquitectónicos en RD.",
     type: "website",
     locale: "es_DO",
   },

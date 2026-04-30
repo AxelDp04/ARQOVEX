@@ -13,6 +13,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/blog',
     '/vender',
     '/catalogo',
+    '/inmobiliaria',
+    '/arquitectura',
     '/contacto',
     '/privacidad',
     '/terminos',
