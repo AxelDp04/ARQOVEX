@@ -1,8 +1,9 @@
 "use client";
 
 import { PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
-import { Loader2 } from "lucide-react";
+import { Loader2, ShieldCheck } from "lucide-react";
 import { useState } from "react";
+import { Turnstile } from "@marsidev/react-turnstile";
 
 interface PayPalButtonProps {
     planoId: string;
@@ -14,6 +15,11 @@ interface PayPalButtonProps {
 export default function PayPalButton({ planoId, monto, userId, onSuccess }: PayPalButtonProps) {
     const [{ isPending }] = usePayPalScriptReducer();
     const [isCapturing, setIsCapturing] = useState(false);
+    const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+    const [isValidating, setIsValidating] = useState(false);
+
+    // Site Key de Cloudflare Turnstile (Usar variable de entorno)
+    const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA";
 
     if (isPending) {
         return (
@@ -26,10 +32,37 @@ export default function PayPalButton({ planoId, monto, userId, onSuccess }: PayP
     return (
         <div className="relative z-0">
             {isCapturing && (
-                <div className="absolute inset-0 z-10 bg-black/50 backdrop-blur-sm flex items-center justify-center rounded-xl">
-                    <Loader2 className="w-8 h-8 text-brand-blue animate-spin" />
+                <div className="absolute inset-0 z-10 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center rounded-xl">
+                    <Loader2 className="w-8 h-8 text-brand-blue animate-spin mb-2" />
+                    <p className="text-sm font-medium text-slate-600">Procesando pago...</p>
                 </div>
             )}
+
+            {/* Filtro Anti-Bots (Turnstile) */}
+            {!turnstileToken && (
+                <div className="mb-4 p-4 border border-slate-200 rounded-xl bg-slate-50/50">
+                    <div className="flex items-center gap-2 mb-3 text-slate-700">
+                        <ShieldCheck className="w-5 h-5 text-emerald-500" />
+                        <span className="text-sm font-semibold">Verificación de seguridad</span>
+                    </div>
+                    <Turnstile 
+                        siteKey={SITE_KEY}
+                        onSuccess={(token) => setTurnstileToken(token)}
+                        onError={() => setTurnstileToken(null)}
+                        onExpire={() => setTurnstileToken(null)}
+                        options={{
+                            theme: 'light',
+                            size: 'normal',
+                        }}
+                    />
+                    <p className="mt-2 text-xs text-slate-500">
+                        Por favor, completa la verificación para habilitar el pago.
+                    </p>
+                </div>
+            )}
+
+            {turnstileToken && (
+                <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
             <PayPalButtons
                 style={{
                     layout: "vertical",
@@ -69,6 +102,7 @@ export default function PayPalButton({ planoId, monto, userId, onSuccess }: PayP
                                 planoID: planoId,
                                 userID: userId,
                                 monto: monto,
+                                turnstileToken: turnstileToken, // Enviamos el token para validación en el servidor
                             }),
                         });
 
@@ -90,7 +124,7 @@ export default function PayPalButton({ planoId, monto, userId, onSuccess }: PayP
                     console.error("PayPal Error:", err);
                     alert("Error en la pasarela de PayPal. Intenta de nuevo.");
                 }}
-            />
+            )}
         </div>
     );
 }

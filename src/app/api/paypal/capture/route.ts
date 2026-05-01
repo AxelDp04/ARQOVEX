@@ -8,6 +8,34 @@ const PAYPAL_API = PAYPAL_MODE === "production"
 
 const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID || process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID;
 const PAYPAL_SECRET = process.env.PAYPAL_SECRET;
+const TURNSTILE_SECRET_KEY = process.env.TURNSTILE_SECRET_KEY;
+
+async function verifyTurnstileToken(token: string) {
+    const secretKey = TURNSTILE_SECRET_KEY;
+    
+    // Si no hay secret key, permitimos pasar (útil en dev si no se ha configurado)
+    // Pero en producción debería ser obligatorio
+    if (!secretKey) {
+        console.warn("TURNSTILE_SECRET_KEY is missing. Skipping verification.");
+        return true;
+    }
+
+    try {
+        const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: `secret=${secretKey}&response=${token}`,
+        });
+
+        const data = await response.json();
+        return data.success;
+    } catch (error) {
+        console.error("Turnstile Verification Error:", error);
+        return false;
+    }
+}
 
 async function getPayPalAccessToken() {
     if (!PAYPAL_CLIENT_ID) {
@@ -46,11 +74,29 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
 
-    const { orderID, planoID, userID, monto } = body;
+    const { orderID, planoID, userID, monto, turnstileToken } = body;
 
     try {
         if (!orderID || !planoID || !userID) {
             return NextResponse.json({ error: "Datos incompletos" }, { status: 400 });
+        }
+
+        // 0. Verify Turnstile Token (Security Filter)
+        if (turnstileToken) {
+            const isHuman = await verifyTurnstileToken(turnstileToken);
+            if (!isHuman) {
+                console.error("Fallo de verificación Turnstile - Posible bot/chipero detectado");
+                return NextResponse.json({ 
+                    error: "Verificación de seguridad fallida. Por favor, intenta de nuevo." 
+                }, { status: 403 });
+            }
+        } else {
+            // Si no viene token y estamos en producción, bloqueamos
+            if (process.env.NODE_ENV === "production" && TURNSTILE_SECRET_KEY) {
+                return NextResponse.json({ 
+                    error: "Falta token de seguridad" 
+                }, { status: 403 });
+            }
         }
 
         const accessToken = await getPayPalAccessToken();
