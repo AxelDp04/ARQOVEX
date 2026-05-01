@@ -59,17 +59,18 @@ export default function CatalogoClient({ initialPlanos }: CatalogoClientProps) {
     // Fetch favorites
     useEffect(() => {
         const fetchFavoritos = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                try {
-                    const res = await fetch('/api/favoritos');
-                    if (res.ok) {
-                        const data = await res.json();
-                        setFavoritos(data);
-                    }
-                } catch (err) {
-                    console.error("Error fetching favorites:", err);
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) return; // No intentamos pedir favoritos si no hay sesión
+
+                const res = await fetch('/api/favoritos');
+                if (res.ok) {
+                    const data = await res.json();
+                    setFavoritos(data);
                 }
+            } catch (err) {
+                // Silenciamos el error en consola si es un 401 esperado
+                console.debug("Favoritos no disponibles (Usuario no logueado)");
             }
         };
         fetchFavoritos();
