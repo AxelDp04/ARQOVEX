@@ -10,7 +10,7 @@ const cspHeader = `
     form-action 'self';
     frame-ancestors 'none';
     frame-src 'self' https://www.paypal.com https://*.paypal.com https://www.sandbox.paypal.com https://www.google.com https://*.google.com https://challenges.cloudflare.com;
-    connect-src 'self' https://rdbdwvwmnozumwtxdmra.supabase.co wss://rdbdwvwmnozumwtxdmra.supabase.co https://*.supabase.co https://www.paypal.com https://*.paypal.com https://www.sandbox.paypal.com https://*.googleapis.com https://challenges.cloudflare.com;
+    connect-src 'self' wss://arqovex.vercel.app wss://localhost:* https://rdbdwvwmnozumwtxdmra.supabase.co wss://rdbdwvwmnozumwtxdmra.supabase.co https://*.supabase.co https://www.paypal.com https://*.paypal.com https://www.sandbox.paypal.com https://*.googleapis.com https://challenges.cloudflare.com;
     media-src 'self' blob: data: https://rdbdwvwmnozumwtxdmra.supabase.co https://*.supabase.co;
 `;
 
@@ -45,6 +45,10 @@ const nextConfig = {
                     {
                         key: 'Content-Security-Policy',
                         value: cspHeader.replace(/\n/g, ''),
+                    },
+                    {
+                        key: 'Permissions-Policy',
+                        value: 'browsing-topics=()',
                     },
                     {
                         key: 'X-Content-Type-Options',
