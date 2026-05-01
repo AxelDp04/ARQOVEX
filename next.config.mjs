@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const cspHeader = `
     default-src 'self';
-    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live https://www.paypal.com https://*.paypal.com https://www.paypalobjects.com https://maps.googleapis.com;
+    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live https://www.paypal.com https://*.paypal.com https://www.paypalobjects.com https://maps.googleapis.com https://challenges.cloudflare.com;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.googleapis.com;
     img-src 'self' blob: data: https://rdbdwvwmnozumwtxdmra.supabase.co https://*.supabase.co https://images.unsplash.com https://*.paypal.com https://*.paypalobjects.com https://maps.gstatic.com https://*.googleapis.com;
     font-src 'self' data: https://fonts.gstatic.com;
@@ -9,8 +9,8 @@ const cspHeader = `
     base-uri 'self';
     form-action 'self';
     frame-ancestors 'none';
-    frame-src 'self' https://www.paypal.com https://*.paypal.com https://www.sandbox.paypal.com https://www.google.com https://*.google.com;
-    connect-src 'self' https://rdbdwvwmnozumwtxdmra.supabase.co wss://rdbdwvwmnozumwtxdmra.supabase.co https://*.supabase.co https://www.paypal.com https://*.paypal.com https://www.sandbox.paypal.com https://*.googleapis.com;
+    frame-src 'self' https://www.paypal.com https://*.paypal.com https://www.sandbox.paypal.com https://www.google.com https://*.google.com https://challenges.cloudflare.com;
+    connect-src 'self' https://rdbdwvwmnozumwtxdmra.supabase.co wss://rdbdwvwmnozumwtxdmra.supabase.co https://*.supabase.co https://www.paypal.com https://*.paypal.com https://www.sandbox.paypal.com https://*.googleapis.com https://challenges.cloudflare.com;
     media-src 'self' blob: data: https://rdbdwvwmnozumwtxdmra.supabase.co https://*.supabase.co;
 `;
 
