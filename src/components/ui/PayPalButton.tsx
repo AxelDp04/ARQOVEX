@@ -16,10 +16,13 @@ export default function PayPalButton({ planoId, monto, userId, onSuccess }: PayP
     const [{ isPending }] = usePayPalScriptReducer();
     const [isCapturing, setIsCapturing] = useState(false);
     const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
-    const [isValidating, setIsValidating] = useState(false);
+    const [turnstileStatus, setTurnstileStatus] = useState<'loading' | 'ready' | 'error'>('loading');
 
-    // Site Key de Cloudflare Turnstile (Usar variable de entorno)
+    // Site Key de Cloudflare Turnstile
     const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA";
+
+    // Debug log para verificar que la llave llega al cliente
+    console.log("Turnstile Site Key Status:", SITE_KEY === "1x00000000000000000000AA" ? "Using Testing Key" : "Using Production Key");
 
     if (isPending) {
         return (
@@ -41,23 +44,48 @@ export default function PayPalButton({ planoId, monto, userId, onSuccess }: PayP
             {/* Filtro Anti-Bots (Turnstile) */}
             {!turnstileToken && (
                 <div className="mb-4 p-4 border border-slate-200 rounded-xl bg-slate-50/50">
-                    <div className="flex items-center gap-2 mb-3 text-slate-700">
-                        <ShieldCheck className="w-5 h-5 text-emerald-500" />
-                        <span className="text-sm font-semibold">Verificación de seguridad</span>
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2 text-slate-700">
+                            <ShieldCheck className={`w-5 h-5 ${turnstileStatus === 'error' ? 'text-red-500' : 'text-emerald-500'}`} />
+                            <span className="text-sm font-semibold">Verificación de seguridad</span>
+                        </div>
+                        {turnstileStatus === 'loading' && (
+                            <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />
+                        )}
                     </div>
-                    <Turnstile 
-                        siteKey={SITE_KEY}
-                        onSuccess={(token) => setTurnstileToken(token)}
-                        onError={() => setTurnstileToken(null)}
-                        onExpire={() => setTurnstileToken(null)}
-                        options={{
-                            theme: 'light',
-                            size: 'normal',
-                        }}
-                    />
-                    <p className="mt-2 text-xs text-slate-500">
-                        Por favor, completa la verificación para habilitar el pago.
-                    </p>
+                    
+                    <div className="min-h-[65px] flex items-center justify-center bg-white rounded-lg border border-dashed border-slate-200">
+                        <Turnstile 
+                            siteKey={SITE_KEY}
+                            onSuccess={(token) => {
+                                setTurnstileToken(token);
+                                setTurnstileStatus('ready');
+                            }}
+                            onError={(err) => {
+                                console.error("Turnstile Error:", err);
+                                setTurnstileStatus('error');
+                            }}
+                            onExpire={() => {
+                                setTurnstileToken(null);
+                                setTurnstileStatus('loading');
+                            }}
+                            onLoad={() => setTurnstileStatus('ready')}
+                            options={{
+                                theme: 'light',
+                                size: 'normal',
+                            }}
+                        />
+                    </div>
+                    
+                    {turnstileStatus === 'error' ? (
+                        <p className="mt-2 text-xs text-red-500 font-medium">
+                            Error al cargar la seguridad. Por favor, refresca la página o desactiva tu bloqueador de anuncios.
+                        </p>
+                    ) : (
+                        <p className="mt-2 text-xs text-slate-500">
+                            Completa la verificación para habilitar el pago.
+                        </p>
+                    )}
                 </div>
             )}
 
