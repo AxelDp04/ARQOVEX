@@ -152,6 +152,8 @@ export default function PayPalButton({ planoId, monto, userId, onSuccess }: PayP
                     console.error("PayPal Error:", err);
                     alert("Error en la pasarela de PayPal. Intenta de nuevo.");
                 }}
+            />
+                </div>
             )}
         </div>
     );
