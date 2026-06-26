@@ -4,6 +4,7 @@ import { useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Loader2 } from "lucide-react";
+import { isAdminEmail } from "@/lib/security/admin";
 
 function AuthCallback() {
     const router = useRouter();
@@ -30,17 +31,10 @@ function AuthCallback() {
                         .eq('id', user.id)
                         .single();
 
-                    // Check multiple admin indicators
                     const isAdminFromProfile = profile?.es_admin === true || profile?.role === 'admin';
-                    
-                    // Hardcoded admin override (CRITICAL)
-                    const hardcodedAdminEmails = ['axelp7223@gmail.com', 'arqovex@gmail.com', 'robertoficial69@hotmail.com'];
-                    const isHardcodedAdmin = hardcodedAdminEmails.includes(user.email?.toLowerCase() || '');
-                    
-                    const isAdmin = isAdminFromProfile || isHardcodedAdmin;
+                    const isAdmin = isAdminFromProfile || isAdminEmail(user.email);
 
-                    // Update role in perfiles table if should be admin
-                    if (isHardcodedAdmin && !isAdminFromProfile) {
+                    if (isAdminEmail(user.email) && !isAdminFromProfile) {
                         try {
                             // First, ensure profile exists
                             const { data: existingProfile } = await supabase

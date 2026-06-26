@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const cspHeader = `
     default-src 'self';
-    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live https://www.paypal.com https://*.paypal.com https://www.paypalobjects.com https://maps.googleapis.com https://challenges.cloudflare.com https://*.cloudflare.com;
+    script-src 'self' 'unsafe-inline' https://vercel.live https://www.paypal.com https://*.paypal.com https://www.paypalobjects.com https://maps.googleapis.com https://challenges.cloudflare.com https://*.cloudflare.com;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.googleapis.com https://challenges.cloudflare.com;
     img-src 'self' blob: data: https://rdbdwvwmnozumwtxdmra.supabase.co https://*.supabase.co https://images.unsplash.com https://*.paypal.com https://*.paypalobjects.com https://maps.gstatic.com https://*.googleapis.com;
     font-src 'self' data: https://fonts.gstatic.com;
@@ -48,7 +48,19 @@ const nextConfig = {
                     },
                     {
                         key: 'Permissions-Policy',
-                        value: 'browsing-topics=()',
+                        value: 'browsing-topics=(), geolocation=(), microphone=(), camera=()',
+                    },
+                    {
+                        key: 'Referrer-Policy',
+                        value: 'strict-origin-when-cross-origin',
+                    },
+                    {
+                        key: 'Cross-Origin-Opener-Policy',
+                        value: 'same-origin',
+                    },
+                    {
+                        key: 'Cross-Origin-Resource-Policy',
+                        value: 'same-origin',
                     },
                     {
                         key: 'X-Content-Type-Options',
@@ -57,10 +69,6 @@ const nextConfig = {
                     {
                         key: 'X-Frame-Options',
                         value: 'DENY',
-                    },
-                    {
-                        key: 'X-XSS-Protection',
-                        value: '1; mode=block',
                     },
                 ],
             },

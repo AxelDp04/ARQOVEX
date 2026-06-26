@@ -11,8 +11,9 @@ export async function GET() {
 export async function POST(request: Request) {
     try {
         const { email } = await request.json();
+        const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
 
-        if (!email || !email.includes('@')) {
+        if (!normalizedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail) || normalizedEmail.length > 254) {
             return NextResponse.json(
                 { error: 'Email inválido.' },
                 { status: 400 }
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
         // 1. Insert into newsletter table
         const { error } = await supabase
             .from('newsletter')
-            .insert([{ email }]);
+            .insert([{ email: normalizedEmail }]);
 
         if (error) {
             // Unique constraint violation (code 23505)

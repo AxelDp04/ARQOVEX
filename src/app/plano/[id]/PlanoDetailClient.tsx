@@ -17,6 +17,7 @@ import type { User as SupabaseUser } from "@supabase/supabase-js";
 import type { Plano } from "@/types";
 import PayPalButton from "@/components/ui/PayPalButton";
 import CitasForm from "@/components/ui/CitasForm";
+import { sanitizeMapEmbed } from "@/lib/security/sanitize";
 
 function formatPrice(price: number): string {
     return "US$ " + new Intl.NumberFormat("en-US", {
@@ -365,7 +366,7 @@ export default function PlanoDetailClient({
                                     </h2>
                                     <div 
                                         className="w-full rounded-2xl overflow-hidden glass-card border-brand-blue/20 shadow-blue-glow-sm aspect-video mb-4 [&>iframe]:w-full [&>iframe]:h-full"
-                                        dangerouslySetInnerHTML={{ __html: plano.iframe_mapa.includes('<iframe') ? plano.iframe_mapa : `<iframe src="${plano.iframe_mapa}" class="w-full h-full border-0"></iframe>` }}
+                                        dangerouslySetInnerHTML={{ __html: sanitizeMapEmbed(plano.iframe_mapa) }}
                                     />
                                     <p className="text-[10px] text-gray-500 italic text-center">Mapa interactivo preciso de la zona</p>
                                 </div>

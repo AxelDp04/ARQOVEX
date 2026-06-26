@@ -5,20 +5,28 @@ import { Resend } from 'resend';
 import { render } from '@react-email/render';
 import { ProyectoNotificationEmailTemplate } from '@/lib/email-templates';
 
-// BYPASS DE EMERGENCIA - API KEY HARDCODED 
-const EMERGENCY_RESEND_KEY = 're_DuWwPamW_FQYFbfTdGNBbzAKY7SoKrQEV';
-
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { nombre, email, telefono, tipo_servicio, mensaje } = body;
+        const nombre = typeof body?.nombre === 'string' ? body.nombre.trim() : '';
+        const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : '';
+        const telefono = typeof body?.telefono === 'string' ? body.telefono.trim() : '';
+        const tipo_servicio = typeof body?.tipo_servicio === 'string' ? body.tipo_servicio.trim() : '';
+        const mensaje = typeof body?.mensaje === 'string' ? body.mensaje.trim() : '';
 
-        // Validación básica
         if (!nombre || !email || !tipo_servicio || !mensaje) {
             return NextResponse.json(
                 { error: 'Campos incompletos.' },
                 { status: 400 }
             );
+        }
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
+            return NextResponse.json({ error: 'Email inválido.' }, { status: 400 });
+        }
+
+        if (nombre.length > 120 || tipo_servicio.length > 80 || mensaje.length > 2000 || (telefono && telefono.length > 30)) {
+            return NextResponse.json({ error: 'Datos demasiado largos.' }, { status: 400 });
         }
 
         const cookieStore = cookies();
@@ -57,11 +65,15 @@ export async function POST(request: Request) {
 
         if (dbError) console.error('Supabase DB Error [No Crítico]:', dbError);
 
-        // 2. ENVIAR CORREO (USANDO ONBOARDING@RESEND.DEV SI EL DOMINIO NO ESTÁ VERIFICADO)
+        // 2. ENVIAR CORREO
         let emailSent = false;
         try {
-            const resend = new Resend(EMERGENCY_RESEND_KEY);
-            const emailHtml = await render(ProyectoNotificationEmailTemplate({
+            const resendApiKey = process.env.RESEND_API_KEY || process.env.NEXT_PUBLIC_RESEND_API_KEY;
+            if (!resendApiKey) {
+                console.error('Resend API key not configured.');
+            } else {
+                const resend = new Resend(resendApiKey);
+                const emailHtml = await render(ProyectoNotificationEmailTemplate({
                 nombre,
                 email,
                 telefono,
@@ -69,25 +81,18 @@ export async function POST(request: Request) {
                 mensaje
             }));
 
-            // Usamos 'onboarding@resend.dev' porque SIEMPRE funciona aunque el dominio 'arqovex.com' no esté verificado.
-            const response = await resend.emails.send({
-                from: 'Resend <onboarding@resend.dev>', 
-                to: 'arqovex@gmail.com',
-                subject: `🏠 SOLICITUD DE PROYECTO: ${nombre}`,
-                html: emailHtml,
-            });
-
-            if (response.error) {
-                console.error('Resend Error Logic:', response.error);
-                // Si 'onboarding' falló, intentamos con el corporativo como último recurso
-                await resend.emails.send({
-                    from: 'ARQOVEX <notificaciones@arqovex.com>', 
+                const response = await resend.emails.send({
+                    from: 'ARQOVEX <notificaciones@arqovex.com>',
                     to: 'arqovex@gmail.com',
-                    subject: `🏠 SOLICITUD DE PROYECTO (Fallback): ${nombre}`,
+                    subject: `🏠 SOLICITUD DE PROYECTO: ${nombre}`,
                     html: emailHtml,
                 });
-            } else {
-                emailSent = true;
+
+                if (response.error) {
+                    console.error('Resend Error Logic:', response.error);
+                } else {
+                    emailSent = true;
+                }
             }
         } catch (emailErr) {
             console.error('Fatal Email Error:', emailErr);

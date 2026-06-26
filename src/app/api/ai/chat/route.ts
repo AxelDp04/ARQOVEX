@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient as createSupabaseAnon } from "@supabase/supabase-js";
 import Groq from "groq-sdk";
+import { checkRateLimit, getClientIp } from "@/lib/security/rateLimit";
 
 // Cliente Supabase anónimo (sin cookies de servidor, funciona en cualquier contexto)
 const supabase = createSupabaseAnon(
@@ -10,6 +11,15 @@ const supabase = createSupabaseAnon(
 
 export async function POST(request: Request) {
   console.log("--- ARQO IA [Groq]: Petición Recibida ---");
+
+  const ip = getClientIp(request);
+  const rateLimit = checkRateLimit(`ai:${ip}`, 20, 60_000);
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { role: "assistant", content: "Demasiadas peticiones. Inténtalo de nuevo en unos minutos." },
+      { status: 429 }
+    );
+  }
 
   // 1. Parsear el body
   let body: { messages?: { role: string; content: string }[] };
@@ -25,6 +35,16 @@ export async function POST(request: Request) {
   const { messages } = body;
   if (!messages || messages.length === 0) {
     return NextResponse.json({ role: "assistant", content: "No se recibió ningún mensaje." }, { status: 400 });
+  }
+
+  const latestMessage = messages[messages.length - 1];
+  if (!latestMessage?.content || typeof latestMessage.content !== "string") {
+    return NextResponse.json({ role: "assistant", content: "Mensaje inválido." }, { status: 400 });
+  }
+
+  const textLength = latestMessage.content.trim().length;
+  if (textLength < 1 || textLength > 1000) {
+    return NextResponse.json({ role: "assistant", content: "El mensaje es demasiado largo o vacío." }, { status: 400 });
   }
 
   const apiKey = process.env.GROQ_API_KEY;

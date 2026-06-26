@@ -3,6 +3,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { isAdminEmail } from '@/lib/security/admin';
 
 function getSupabaseServer() {
     const cookieStore = cookies();
@@ -26,8 +27,6 @@ function getSupabaseServer() {
         }
     );
 }
-
-const HARDCODED_ADMIN_EMAILS = ['axelp7223@gmail.com', 'arqovex@gmail.com', 'robertoficial69@hotmail.com'];
 
 // ─── LOGIN ACTION ────────────────────────────────────────────────────────────
 export async function loginAction(formData: FormData): Promise<{ error?: string; redirectUrl?: string }> {
@@ -55,7 +54,7 @@ export async function loginAction(formData: FormData): Promise<{ error?: string;
     const isAdmin =
         profile?.es_admin === true ||
         profile?.role === 'admin' ||
-        HARDCODED_ADMIN_EMAILS.includes(data.user.email?.toLowerCase() ?? '');
+        isAdminEmail(data.user.email);
 
     return { redirectUrl: isAdmin ? '/admin' : '/arquitectura' };
 }

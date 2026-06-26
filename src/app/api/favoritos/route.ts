@@ -44,7 +44,8 @@ export async function GET() {
 export async function POST(request: Request) {
     try {
         const { planoId } = await request.json();
-        if (!planoId) {
+        const normalizedPlanoId = typeof planoId === 'string' ? planoId.trim() : '';
+        if (!normalizedPlanoId || normalizedPlanoId.length > 100) {
             return NextResponse.json({ error: 'Falta planoId' }, { status: 400 });
         }
 
@@ -76,7 +77,7 @@ export async function POST(request: Request) {
             .from('favoritos')
             .select('id')
             .eq('user_id', user.id)
-            .eq('plano_id', planoId)
+            .eq('plano_id', normalizedPlanoId)
             .single();
 
         if (existing) {
@@ -90,7 +91,7 @@ export async function POST(request: Request) {
         } else {
             const { error: insError } = await supabase
                 .from('favoritos')
-                .insert([{ user_id: user.id, plano_id: planoId }]);
+                .insert([{ user_id: user.id, plano_id: normalizedPlanoId }]);
             
             if (insError) throw insError;
             return NextResponse.json({ status: 'added', message: 'Agregado a favoritos' });

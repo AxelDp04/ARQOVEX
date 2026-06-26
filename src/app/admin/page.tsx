@@ -17,6 +17,7 @@ import MainLayout from "@/components/layout/MainLayout";
 import PartnerUploadModal from "@/components/marketplace/PartnerUploadModal";
 import { createClient } from "@/lib/supabase/client";
 import { LOGO_SRC } from "@/lib/constants";
+import { isAdminEmail } from "@/lib/security/admin";
 import type { Categoria, Plano, Resena, SolicitudSocio, SolicitudVendedor, Perfil, Payout } from "@/types";
 import Image from "next/image";
 import type { User } from "@supabase/supabase-js";
@@ -690,12 +691,7 @@ export default function AdminPage() {
             .single();
 
         const isAdminFromProfile = profile?.es_admin === true || profile?.role === 'admin';
-        
-        // Hardcoded admin override (CRITICAL)
-        const hardcodedAdminEmails = ['axelp7223@gmail.com', 'arqovex@gmail.com', 'robertoficial69@hotmail.com'];
-        const isHardcodedAdmin = hardcodedAdminEmails.includes(user.email?.toLowerCase() || '');
-        
-        const isAdmin = isAdminFromProfile || isHardcodedAdmin;
+        const isAdmin = isAdminFromProfile || isAdminEmail(user.email);
 
         if (!isAdmin) {
             router.push("/arquitectura");

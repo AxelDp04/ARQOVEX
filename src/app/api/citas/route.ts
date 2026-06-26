@@ -5,20 +5,29 @@ import { Resend } from 'resend';
 import { render } from '@react-email/render';
 import { CitaNotificationEmailTemplate } from '@/lib/email-templates';
 
-// BYPASS DE EMERGENCIA - API KEY HARDCODED 
-const EMERGENCY_RESEND_KEY = 're_DuWwPamW_FQYFbfTdGNBbzAKY7SoKrQEV';
-
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const { nombre_completo, email, telefono, fecha_cita, mensaje, url_propiedad } = body;
+        const nombre_completo = typeof body?.nombre_completo === 'string' ? body.nombre_completo.trim() : '';
+        const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : '';
+        const telefono = typeof body?.telefono === 'string' ? body.telefono.trim() : '';
+        const fecha_cita = typeof body?.fecha_cita === 'string' ? body.fecha_cita.trim() : '';
+        const mensaje = typeof body?.mensaje === 'string' ? body.mensaje.trim() : '';
+        const url_propiedad = typeof body?.url_propiedad === 'string' ? body.url_propiedad.trim() : '';
 
-        // Validación básica
         if (!nombre_completo || !email || !telefono || !fecha_cita) {
             return NextResponse.json(
                 { error: 'Campos incompletos.' },
                 { status: 400 }
             );
+        }
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
+            return NextResponse.json({ error: 'Email inválido.' }, { status: 400 });
+        }
+
+        if (nombre_completo.length > 120 || telefono.length > 30 || mensaje.length > 2000 || (url_propiedad && url_propiedad.length > 500)) {
+            return NextResponse.json({ error: 'Datos demasiado largos.' }, { status: 400 });
         }
 
         const cookieStore = cookies();
@@ -57,11 +66,15 @@ export async function POST(request: Request) {
 
         if (dbError) console.error('Supabase DB Error [No Crítico]:', dbError);
 
-        // 2. ENVIAR CORREO (USANDO ONBOARDING@RESEND.DEV SI EL DOMINIO NO ESTÁ VERIFICADO)
+        // 2. ENVIAR CORREO
         let emailSent = false;
         try {
-            const resend = new Resend(EMERGENCY_RESEND_KEY);
-            const emailHtml = await render(CitaNotificationEmailTemplate({
+            const resendApiKey = process.env.RESEND_API_KEY || process.env.NEXT_PUBLIC_RESEND_API_KEY;
+            if (!resendApiKey) {
+                console.error('Resend API key not configured.');
+            } else {
+                const resend = new Resend(resendApiKey);
+                const emailHtml = await render(CitaNotificationEmailTemplate({
                 nombre: nombre_completo,
                 email,
                 telefono,
@@ -70,45 +83,37 @@ export async function POST(request: Request) {
                 url_propiedad
             }));
 
-            // Usamos 'onboarding@resend.dev' porque SIEMPRE funciona aunque el dominio 'arqovex.com' no esté verificado.
-            const response = await resend.emails.send({
-                from: 'Resend <onboarding@resend.dev>', 
-                to: 'arqovex@gmail.com',
-                subject: `🏠 NUEVA CITA: ${nombre_completo}`,
-                html: emailHtml,
-            });
-
-            if (response.error) {
-                console.error('Resend Error Logic:', response.error);
-                // Si 'onboarding' falló, intentamos con el corporativo como último recurso
-                await resend.emails.send({
-                    from: 'ARQOVEX <notificaciones@arqovex.com>', 
+                const response = await resend.emails.send({
+                    from: 'ARQOVEX <notificaciones@arqovex.com>',
                     to: 'arqovex@gmail.com',
-                    subject: `🏠 NUEVA CITA (Fallback): ${nombre_completo}`,
+                    subject: `🏠 NUEVA CITA: ${nombre_completo}`,
                     html: emailHtml,
                 });
-            } else {
-                // 3. ENVIAR COPIA AL CLIENTE
-                await resend.emails.send({
-                    from: 'ARQOVEX Real Estate <onboarding@resend.dev>', 
-                    to: email,
-                    subject: `Confirmación de Solicitud de Cita - ARQOVEX`,
-                    html: `
-                        <div style="font-family: sans-serif; padding: 20px; background-color: #0d1424; color: #fff;">
-                            <h2 style="color: #0066ff;">¡Hola ${nombre_completo}!</h2>
-                            <p>Hemos recibido tu solicitud para visitar la propiedad.</p>
-                            <p><strong>Detalles de tu cita programada:</strong></p>
-                            <ul>
-                                <li>Fecha sugerida: ${new Date(fecha_cita).toLocaleDateString()}</li>
-                                <li>Propiedad: <a href="${url_propiedad}" style="color: #0066ff;">Ver Propiedad</a></li>
-                            </ul>
-                            <p>Un asesor de nuestro equipo se pondrá en contacto contigo muy pronto a través de WhatsApp o llamada telefónica.</p>
-                            <hr style="border: 1px solid #1e293b;" />
-                            <p style="font-size: 12px; color: #94a3b8;">ARQOVEX Real Estate - Innovación Inmobiliaria</p>
-                        </div>
-                    `,
-                });
-                emailSent = true;
+
+                if (response.error) {
+                    console.error('Resend Error Logic:', response.error);
+                } else {
+                    await resend.emails.send({
+                        from: 'ARQOVEX <notificaciones@arqovex.com>',
+                        to: email,
+                        subject: `Confirmación de Solicitud de Cita - ARQOVEX`,
+                        html: `
+                            <div style="font-family: sans-serif; padding: 20px; background-color: #0d1424; color: #fff;">
+                                <h2 style="color: #0066ff;">¡Hola ${nombre_completo}!</h2>
+                                <p>Hemos recibido tu solicitud para visitar la propiedad.</p>
+                                <p><strong>Detalles de tu cita programada:</strong></p>
+                                <ul>
+                                    <li>Fecha sugerida: ${new Date(fecha_cita).toLocaleDateString()}</li>
+                                    <li>Propiedad: <a href="${url_propiedad}" style="color: #0066ff;">Ver Propiedad</a></li>
+                                </ul>
+                                <p>Un asesor de nuestro equipo se pondrá en contacto contigo muy pronto a través de WhatsApp o llamada telefónica.</p>
+                                <hr style="border: 1px solid #1e293b;" />
+                                <p style="font-size: 12px; color: #94a3b8;">ARQOVEX Real Estate - Innovación Inmobiliaria</p>
+                            </div>
+                        `,
+                    });
+                    emailSent = true;
+                }
             }
         } catch (emailErr) {
             console.error('Fatal Email Error:', emailErr);

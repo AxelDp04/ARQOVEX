@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Calendar, User, Tag } from "lucide-react";
 import { articles } from "@/data/blog-articles";
+import { sanitizeTrustedHtml } from "@/lib/security/sanitize";
 
 interface BlogPostPageProps {
     params: Promise<{ slug: string }>;
@@ -88,7 +89,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                                 prose-hr:border-white/10
                             "
                             dangerouslySetInnerHTML={{
-                                __html: convertMarkdownToHtml(article.content),
+                                __html: sanitizeTrustedHtml(convertMarkdownToHtml(article.content)),
                             }}
                         />
 

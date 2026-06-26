@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { isAdminEmail } from '@/lib/security/admin'
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next()
@@ -25,14 +26,8 @@ export async function middleware(req: NextRequest) {
       .eq('id', session.user.id)
       .single()
 
-    // Check multiple admin indicators
     const isAdminFromProfile = profile?.es_admin === true || profile?.role === 'admin'
-    
-    // Hardcoded admin override (CRITICAL)
-    const hardcodedAdminEmails = ['axelp7223@gmail.com', 'arqovex@gmail.com', 'robertoficial69@hotmail.com']
-    const isHardcodedAdmin = session.user.email && hardcodedAdminEmails.includes(session.user.email.toLowerCase())
-    
-    const isAdmin = isAdminFromProfile || isHardcodedAdmin
+    const isAdmin = isAdminFromProfile || isAdminEmail(session.user.email)
 
     // If admin is trying to access login/register pages, redirect to admin dashboard
     if (isAdmin && (req.nextUrl.pathname.startsWith('/auth/login') || req.nextUrl.pathname.startsWith('/auth/registro'))) {
